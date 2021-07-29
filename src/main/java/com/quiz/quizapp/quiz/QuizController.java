@@ -1,5 +1,6 @@
-package com.quiz.quizapp;
+package com.quiz.quizapp.quiz;
 
+import javassist.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -13,25 +14,26 @@ import java.util.*;
 @RequestMapping("api/quizzes")
 public class QuizController {
 
-    private final QuizRepository quizzes;
+    private final QuizService quizzes;
 
-    public QuizController(QuizRepository quizzes) {
+    public QuizController(QuizService quizzes) {
         this.quizzes = quizzes;
     }
 
+
     @GetMapping
-    public ResponseEntity<Iterable<Quiz>> get() {
-        return ResponseEntity.ok(quizzes.findAll());
+    public ResponseEntity<List<Quiz>> get() {
+        return ResponseEntity.ok(quizzes.getAllQuizzes());
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Quiz> get(@PathVariable String id) {
+    public ResponseEntity<Quiz> get(@PathVariable String id) throws NotFoundException {
         var quiz = getQuiz(id);
         return quiz.map(ResponseEntity::ok).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<Object> delete(@PathVariable String id) {
+    public ResponseEntity<Object> delete(@PathVariable String id) throws NotFoundException {
         var quiz = getQuiz(id);
         if (quiz.isPresent()) {
             quizzes.delete(quiz.get());
@@ -41,13 +43,13 @@ public class QuizController {
     }
 
     @PostMapping
-    public ResponseEntity<Quiz> post(@Valid @RequestBody Quiz quiz) {
+    public ResponseEntity<Quiz> post(@RequestBody Quiz quiz) {
         quiz = quizzes.save(quiz);
         return ResponseEntity.ok(quiz);
     }
 
     @PostMapping("{id}/solve")
-    public ResponseEntity<Feedback> post(@PathVariable String id,@Valid @RequestBody Answer answer) {
+    public ResponseEntity<Feedback> post(@PathVariable String id,@Valid @RequestBody Answer answer) throws NotFoundException {
         var quiz = getQuiz(id);
         if (quiz.isPresent()) {
             var providedAnswers = answer.getAnswer();
@@ -68,9 +70,8 @@ public class QuizController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    private Optional<Quiz> getQuiz(String id) {
-        var idValue = Integer.parseInt(id);
-        return quizzes.findById(idValue);
+    private Optional<Quiz> getQuiz(String id) throws NotFoundException {
+        return quizzes.getQuiz(Integer.parseInt(id));
     }
 
 }

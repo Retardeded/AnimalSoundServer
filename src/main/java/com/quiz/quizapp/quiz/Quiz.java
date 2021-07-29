@@ -1,4 +1,4 @@
-package com.quiz.quizapp;
+package com.quiz.quizapp.quiz;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -40,7 +40,7 @@ public class Quiz {
     @ElementCollection
     private List<String> options;
 
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    //@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column
     @ElementCollection
     private List<Integer> answer;
