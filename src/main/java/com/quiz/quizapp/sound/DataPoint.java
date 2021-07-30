@@ -12,7 +12,7 @@ import java.util.Date;
 @NoArgsConstructor
 
 public class DataPoint implements Serializable {
-    //private static final long serialVersionUID = 1428263322645L;
+    private static final long serialVersionUID = 1428263322645L;
     private double x;
     private double y;
 

@@ -30,6 +30,10 @@ public class DataSound {
     @Column
     private String title;
 
+    @NotBlank
+    @Column
+    private Long durationMillis;
+
     @Column
     @ElementCollection
     private List<DataPoint> dataPoints;
