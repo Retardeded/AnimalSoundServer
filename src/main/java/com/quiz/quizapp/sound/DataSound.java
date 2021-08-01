@@ -36,5 +36,5 @@ public class DataSound {
 
     @Column
     @ElementCollection
-    private List<DataPoint> dataPoints;
+    private List<DataGraph> dataGraphs;
 }
