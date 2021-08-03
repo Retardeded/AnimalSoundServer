@@ -1,4 +1,4 @@
-package com.quiz.quizapp.quiz;
+package com.soundrecognition.server.quiz;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

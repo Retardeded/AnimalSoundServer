@@ -1,12 +1,9 @@
-package com.quiz.quizapp.sound;
+package com.soundrecognition.server.sound;
 
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import java.io.Serializable;
 import java.util.List;
 
@@ -16,7 +13,5 @@ import java.util.List;
 @NoArgsConstructor
 public class DataGraph implements Serializable {
 
-    @ElementCollection
-    @Column
     private List<DataPoint> dataPoints;
 }

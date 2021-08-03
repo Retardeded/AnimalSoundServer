@@ -1,7 +1,8 @@
-package com.quiz.quizapp.sound;
+package com.soundrecognition.server.sound;
 
 
 import javassist.NotFoundException;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -26,6 +27,7 @@ public class DataSoundController {
         return ResponseEntity.ok(sounds.getAllDataSounds());
     }
 
+
     @GetMapping("{id}")
     public ResponseEntity<DataSound> get(@PathVariable String id) throws NotFoundException {
         var data = getDataSound(id);
@@ -46,6 +48,12 @@ public class DataSoundController {
     public ResponseEntity<DataSound> post(@RequestBody DataSound dataSound) {
         dataSound = sounds.save(dataSound);
         return ResponseEntity.ok(dataSound);
+    }
+
+    @PostMapping("/check")
+    public List<Pair<DataSound, Double>> checkSound(@RequestBody DataSound dataSound) {
+        var list = sounds.getMostSimilarSounds(dataSound);
+        return list;
     }
 
     private Optional<DataSound> getDataSound(String id) throws NotFoundException {

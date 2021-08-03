@@ -1,4 +1,4 @@
-package com.quiz.quizapp.quiz;
+package com.soundrecognition.server.quiz;
 
 import javassist.NotFoundException;
 import org.springframework.stereotype.Service;
