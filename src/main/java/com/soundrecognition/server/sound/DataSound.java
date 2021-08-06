@@ -31,6 +31,11 @@ public class DataSound {
     @Column
     private Long durationMillis;
 
+    public void setDataPoints(List<DataPoint> dataPoints) {
+        this.dataPoints = dataPoints;
+    }
+
     @ElementCollection
+    @Column
     private List<DataPoint> dataPoints;
 }

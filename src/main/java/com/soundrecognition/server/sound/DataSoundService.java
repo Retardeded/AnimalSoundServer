@@ -4,7 +4,6 @@ import javassist.NotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 @Service
@@ -19,8 +18,20 @@ public class DataSoundService {
     /**
      * Returns all quizzes.
      */
-    public List<DataSound> getAllDataSounds() {
-        return dataSoundRepository.findAll();
+
+    public List<DataSound> getDataSounds()
+    {
+       return  dataSoundRepository.findAll();
+    }
+
+    public List<DataSound> getSoundInfoOnly()
+    {
+        ArrayList<DataSound> data = new ArrayList<>();
+        for (var sound: dataSoundRepository.findAll() ) {
+            sound.setDataPoints(new ArrayList<>());
+            data.add(sound);
+        }
+        return data;
     }
 
     public List<Pair<DataSound,Double>> getMostSimilarSounds(DataSound newSound) {
@@ -28,7 +39,11 @@ public class DataSoundService {
         ArrayList<Pair<DataSound,Double>> mostSimilar = new ArrayList<>();
         for (var sound:sounds
              ) {
-            mostSimilar.add(Pair.of(sound, CalculateSoundSimilarity.correlationCoefficient(sound, newSound)));
+            Double cor = CalculateSoundSimilarity.correlationCoefficient(sound, newSound);
+            System.out.println(cor);
+            if(cor.isNaN()) continue;
+            sound.setDataPoints(new ArrayList<>());
+            mostSimilar.add(Pair.of(sound, cor));
         }
         Collections.sort(mostSimilar, new Comparator<Pair<DataSound, Double>>() {
             @Override
@@ -45,7 +60,6 @@ public class DataSoundService {
         });
         return mostSimilar.subList(0,Math.min(mostSimilar.size(),3));
     }
-
 
     public Optional<DataSound> getDataSound(Integer id) throws NotFoundException {
         Optional<DataSound> data = dataSoundRepository.findById(id);

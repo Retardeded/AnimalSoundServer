@@ -8,7 +8,7 @@ public class CalculateSoundSimilarity {
     {
         var newSoundData = newSound.getDataPoints();
         var compareSoundData = compareSound.getDataPoints();
-        int n = newSoundData.size();
+        int n = Math.min(newSoundData.size(),compareSoundData.size());
 
         int sum_X = 0, sum_Y = 0, sum_XY = 0;
         int squareSum_X = 0, squareSum_Y = 0;
