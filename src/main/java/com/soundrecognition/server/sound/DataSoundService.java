@@ -15,10 +15,6 @@ public class DataSoundService {
         this.dataSoundRepository = dataSoundRepository;
     }
 
-    /**
-     * Returns all quizzes.
-     */
-
     public List<DataSound> getDataSounds()
     {
        return  dataSoundRepository.findAll();
@@ -28,7 +24,8 @@ public class DataSoundService {
     {
         ArrayList<DataSound> data = new ArrayList<>();
         for (var sound: dataSoundRepository.findAll() ) {
-            sound.setDataPoints(new ArrayList<>());
+            sound.setFreqDomainPoints(new ArrayList<>());
+            sound.setTimeDomainPoints(new ArrayList<>());
             data.add(sound);
         }
         return data;
@@ -42,7 +39,7 @@ public class DataSoundService {
             Double cor = CalculateSoundSimilarity.correlationCoefficient(sound, newSound);
             System.out.println(cor);
             if(cor.isNaN()) continue;
-            sound.setDataPoints(new ArrayList<>());
+            sound.setFreqDomainPoints(new ArrayList<>());
             mostSimilar.add(Pair.of(sound, cor));
         }
         Collections.sort(mostSimilar, new Comparator<Pair<DataSound, Double>>() {

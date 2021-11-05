@@ -1,13 +1,11 @@
 package com.soundrecognition.server.sound;
 
-import java.util.List;
-
 public class CalculateSoundSimilarity {
 
     public static double correlationCoefficient(DataSound newSound, DataSound compareSound)
     {
-        var newSoundData = newSound.getDataPoints();
-        var compareSoundData = compareSound.getDataPoints();
+        var newSoundData = newSound.getFreqDomainPoints();
+        var compareSoundData = compareSound.getFreqDomainPoints();
         int n = Math.min(newSoundData.size(),compareSoundData.size());
 
         int sum_X = 0, sum_Y = 0, sum_XY = 0;

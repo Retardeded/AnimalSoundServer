@@ -31,11 +31,19 @@ public class DataSound {
     @Column
     private Long durationMillis;
 
-    public void setDataPoints(List<DataPoint> dataPoints) {
-        this.dataPoints = dataPoints;
+    public void setFreqDomainPoints(List<DataPoint> dataPoints) {
+        this.freqDomainPoints = dataPoints;
     }
 
     @ElementCollection
     @Column
-    private List<DataPoint> dataPoints;
+    private List<DataPoint> freqDomainPoints;
+
+    public void setTimeDomainPoints(List<DataPoint> dataPoints) {
+        this.timeDomainPoints = dataPoints;
+    }
+
+    @ElementCollection
+    @Column
+    private List<DataPoint> timeDomainPoints;
 }
