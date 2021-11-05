@@ -1,6 +1,5 @@
-package com.quiz.quizapp.sound;
+package com.soundrecognition.server.sound;
 
-import com.quiz.quizapp.quiz.Quiz;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
