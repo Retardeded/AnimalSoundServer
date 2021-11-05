@@ -3,6 +3,7 @@ package com.soundrecognition.server.sound;
 import javassist.NotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
+import ca.uol.aig.fftpack.RealDoubleFFT;
 
 import java.util.*;
 
@@ -68,6 +69,23 @@ public class DataSoundService {
     }
 
     public DataSound save(DataSound dataSound) {
+        /*
+        int n = dataSound.getPointsInGraph();
+        var audioData = dataSound.getTimeDomainPoints();
+        var transformer = new RealDoubleFFT(n);
+        double[] toTransform = new double[n];
+        var dataFreqDomain = new ArrayList<DataPoint>();
+        for (int i = 0; i < n; i++) {
+            //toTransform[i] = audioData[i].toDouble() / Short.MAX_VALUE
+            toTransform[i] = audioData.get(i).getY();
+        }
+        transformer.ft(toTransform);
+        for (int i = 0; i < n; i++) {
+            dataFreqDomain.add(new DataPoint(i, toTransform[i]));
+        }
+        //dataSound.setFreqDomainPoints(dataFreqDomain);
+
+         */
         dataSoundRepository.save(dataSound);
         return dataSound;
     }

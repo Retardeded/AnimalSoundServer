@@ -31,6 +31,15 @@ public class DataSound {
     @Column
     private Long durationMillis;
 
+    public Long getPointsInGraph() {
+        return pointsInGraph;
+    }
+
+    @NotBlank
+    @Column
+    private Long pointsInGraph;
+
+
     public void setFreqDomainPoints(List<DataPoint> dataPoints) {
         this.freqDomainPoints = dataPoints;
     }
