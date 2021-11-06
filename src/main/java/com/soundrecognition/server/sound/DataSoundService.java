@@ -1,5 +1,6 @@
 package com.soundrecognition.server.sound;
 ;
+import ca.uol.aig.fftpack.RealDoubleFFT;
 import javassist.NotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
@@ -68,6 +69,24 @@ public class DataSoundService {
     }
 
     public DataSound save(DataSound dataSound) {
+
+        int n = Math.toIntExact(dataSound.getPointsInGraphs());
+        var audioData = dataSound.getTimeDomainPoints();
+        var transformer = new RealDoubleFFT(n);
+        double[] toTransform = new double[n];
+        var dataFreqDomain = new ArrayList<DataPoint>();
+        for(int j = 0; j < dataSound.getNumOfGraphs(); j++) {
+            for (int i = 0; i < n; i++) {
+                //toTransform[i] = audioData[i].toDouble() / Short.MAX_VALUE
+                toTransform[i] = audioData.get(i+j*n).getY();
+            }
+            transformer.ft(toTransform);
+            for (int i = 0; i < n; i++) {
+                dataFreqDomain.add(new DataPoint(i+j*n, toTransform[i]));
+            }
+            //System.out.println(dataFreqDomain.size());
+        }
+        dataSound.setFreqDomainPoints(dataFreqDomain);
         dataSoundRepository.save(dataSound);
         return dataSound;
     }
@@ -75,4 +94,20 @@ public class DataSoundService {
     public void delete(DataSound dataSound) {
         dataSoundRepository.delete(dataSound);
     }
+
+    private ArrayList<DataGraph> loadDataSound(List<DataPoint> soundData, Integer pointsInGraphs) {
+        var dataGraphs = new ArrayList<DataGraph>();
+        var numberOfGraphs = (soundData.size() / pointsInGraphs-1);
+        for (int i = 0; i < numberOfGraphs; i++) {
+            var graph = new DataGraph(
+                    soundData.subList(
+                            ((i * pointsInGraphs)),
+                            ((i + 1) * pointsInGraphs)
+                    )
+            );
+            dataGraphs.add(graph);
+        }
+        return dataGraphs;
+    }
+
 }
