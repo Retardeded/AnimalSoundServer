@@ -70,12 +70,12 @@ public class DataSoundService {
 
     public DataSound save(DataSound dataSound) {
 
-        int n = Math.toIntExact(dataSound.getPointsInGraphs());
+        int n = (int) (Math.toIntExact(dataSound.getPointsInGraphs())*dataSound.getNumOfGraphs());
         var audioData = dataSound.getTimeDomainPoints();
         var transformer = new RealDoubleFFT(n);
         double[] toTransform = new double[n];
         var dataFreqDomain = new ArrayList<DataPoint>();
-        for(int j = 0; j < dataSound.getNumOfGraphs(); j++) {
+        for(int j = 0; j < 1; j++) {
             for (int i = 0; i < n; i++) {
                 //toTransform[i] = audioData[i].toDouble() / Short.MAX_VALUE
                 toTransform[i] = audioData.get(i+j*n).getY();
