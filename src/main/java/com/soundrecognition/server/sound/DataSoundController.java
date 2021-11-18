@@ -50,9 +50,9 @@ public class DataSoundController {
     }
 
     @PostMapping
-    public ResponseEntity<DataSound> post(@RequestBody DataSound dataSound) {
+    public DataSound post(@RequestBody DataSound dataSound) {
         dataSound = sounds.save(dataSound);
-        return ResponseEntity.ok(dataSound);
+        return (dataSound);
     }
 
     @PostMapping("/check")

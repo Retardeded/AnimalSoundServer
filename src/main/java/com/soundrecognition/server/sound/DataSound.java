@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -17,7 +18,7 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class DataSound {
+public class DataSound implements Comparator<DataPoint> {
     @Id
     @Column
     @GeneratedValue
@@ -63,4 +64,15 @@ public class DataSound {
     @ElementCollection
     @Column
     private List<DataPoint> timeDomainPoints;
+
+    @Override
+    public int compare(DataPoint a, DataPoint b) {
+        var aY = Math.abs(a.y);
+        var bY = Math.abs(b.y);
+        if (aY > bY)
+            return -1; // highest value first
+        if (aY == bY)
+            return 0;
+        return 1;
+    }
 }

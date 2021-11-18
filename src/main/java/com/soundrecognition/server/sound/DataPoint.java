@@ -12,7 +12,7 @@ import java.io.Serializable;
 
 public class DataPoint implements Serializable {
     private static final long serialVersionUID = 1428263322645L;
-    private double x;
-    private double y;
+    public double x;
+    public double y;
 
 }
