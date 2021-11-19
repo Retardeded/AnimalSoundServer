@@ -1,5 +1,6 @@
-package com.soundrecognition.server.sound;
+package com.soundrecognition.model;
 
+import com.soundrecognition.model.DataPoint;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

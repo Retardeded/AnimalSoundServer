@@ -1,6 +1,9 @@
-package com.soundrecognition.server.sound;
+package com.soundrecognition.controller;
 
 
+import com.soundrecognition.model.DataSound;
+import com.soundrecognition.model.SoundsCoefficients;
+import com.soundrecognition.service.DataSoundService;
 import javassist.NotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
@@ -56,7 +59,7 @@ public class DataSoundController {
     }
 
     @PostMapping("/check")
-    public List<Pair<DataSound, Double>> checkSound(@RequestBody DataSound dataSound) {
+    public List<Pair<DataSound, SoundsCoefficients>> checkSound(@RequestBody DataSound dataSound) {
         var list = sounds.getMostSimilarSounds(dataSound);
         return list;
     }

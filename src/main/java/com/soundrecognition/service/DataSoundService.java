@@ -1,6 +1,10 @@
-package com.soundrecognition.server.sound;
+package com.soundrecognition.service;
 ;
 import ca.uol.aig.fftpack.RealDoubleFFT;
+import com.soundrecognition.model.*;
+import com.soundrecognition.repository.DataSoundParametersRepository;
+import com.soundrecognition.repository.DataSoundRepository;
+import com.soundrecognition.soundprocessing.CalculateSoundSimilarity;
 import javassist.NotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
@@ -38,9 +42,7 @@ public class DataSoundService {
         var zeroCrossingDensity = CalculateSoundSimilarity.zeroCrossingDensity(dataSound);
         var rootMeanSquareEnergy = CalculateSoundSimilarity.rootMeanSquareEnergy(dataSound);
         var signalEnvelope = CalculateSoundSimilarity.signalEnvelope(dataSound);
-
-        //List<Double> list = Arrays.asList(signalEnvelope);
-        var parameters = new DataSoundParameters(Arrays.asList(signalEnvelope));
+        var parameters = new DataSoundParameters(Arrays.asList(signalEnvelope), Arrays.asList(rootMeanSquareEnergy), zeroCrossingDensity);
         return parameters;
     }
 
@@ -64,65 +66,35 @@ public class DataSoundService {
         }
         dataSound.setFreqDomainPoints(dataFreqDomain);
         DataSoundParameters parameters = getDataSoundParameters(dataSound);
-        System.out.println("save:::" + parameters.signalEnvelope);
 
         dataSoundRepository.save(dataSound);
         dataSoundParametersRepository.save(parameters);
         return dataSound;
     }
 
-    public List<Pair<DataSound,Double>> getMostSimilarSounds(DataSound newSound) {
+    public List<Pair<DataSound, SoundsCoefficients>> getMostSimilarSounds(DataSound newSound) {
         var sounds = dataSoundRepository.findAll();
         var soundsParams = dataSoundParametersRepository.findAll();
         var newSoundParam = getDataSoundParameters(newSound);
-        ArrayList<Pair<DataSound,Double>> mostSimilar = new ArrayList<>();
+        ArrayList<Pair<DataSound,SoundsCoefficients>> mostSimilar = new ArrayList<>();
 
-        System.out.println(newSoundParam.signalEnvelope);
 
         for (int i =0; i < soundsParams.size(); i++) {
             var params = soundsParams.get(i);
-            System.out.println(params.signalEnvelope);
-            Double cor = CalculateSoundSimilarity.correlationParamsCoefficient(params, newSoundParam);
+            System.out.println(params);
+            var cor = CalculateSoundSimilarity.correlationParamsCoefficient(params, newSoundParam);
             System.out.println(cor);
-            if(cor.isNaN()) continue;
             //parameters.setFreqDomainPoints(new ArrayList<>());
             mostSimilar.add(Pair.of(sounds.get(i), cor));
 
         }
 
-        Collections.sort(mostSimilar, new Comparator<Pair<DataSound, Double>>() {
+        Collections.sort(mostSimilar, new Comparator<Pair<DataSound, SoundsCoefficients>>() {
             @Override
-            public int compare(final Pair<DataSound, Double> o1, final Pair<DataSound, Double> o2) {
-                if (o1.getSecond() > o2.getSecond()) {
+            public int compare(final Pair<DataSound, SoundsCoefficients> o1, final Pair<DataSound, SoundsCoefficients> o2) {
+                if (o1.getSecond().mergedCoefficient > o2.getSecond().mergedCoefficient) {
                     return -1;
-                } else if (o1.getSecond().equals(o2.getSecond())) {
-                    return 0; // You can change this to make it then look at the
-                    //words alphabetical order
-                } else {
-                    return 1;
-                }
-            }
-        });
-
-
-        return mostSimilar.subList(0,Math.min(mostSimilar.size(),3));
-
-        /*
-        ArrayList<Pair<DataSound,Double>> mostSimilar = new ArrayList<>();
-        for (var sound:sounds
-             ) {
-            Double cor = CalculateSoundSimilarity.correlationCoefficient(sound, newSound);
-            System.out.println(cor);
-            if(cor.isNaN()) continue;
-            sound.setFreqDomainPoints(new ArrayList<>());
-            mostSimilar.add(Pair.of(sound, cor));
-        }
-        Collections.sort(mostSimilar, new Comparator<Pair<DataSound, Double>>() {
-            @Override
-            public int compare(final Pair<DataSound, Double> o1, final Pair<DataSound, Double> o2) {
-                if (o1.getSecond() > o2.getSecond()) {
-                    return -1;
-                } else if (o1.getSecond().equals(o2.getSecond())) {
+                } else if (o1.getSecond().mergedCoefficient == (o2.getSecond().mergedCoefficient)) {
                     return 0; // You can change this to make it then look at the
                     //words alphabetical order
                 } else {
@@ -131,7 +103,6 @@ public class DataSoundService {
             }
         });
         return mostSimilar.subList(0,Math.min(mostSimilar.size(),3));
-         */
     }
 
     public Optional<DataSound> getDataSound(Integer id) throws NotFoundException {
