@@ -1,13 +1,13 @@
 package com.soundrecognition.model;
 
-public class SoundsCoefficients {
+public class SoundsTimeCoefficients {
     public double envelopeCoefficient;
     public double energyCoefficient;
     public double zeroCrossingCoefficient;
 
     public double mergedCoefficient;
 
-    public SoundsCoefficients(double envelopeCoefficient, double energyCoefficient, double zeroCrossingCoefficient, double mergedCoefficient) {
+    public SoundsTimeCoefficients(double envelopeCoefficient, double energyCoefficient, double zeroCrossingCoefficient, double mergedCoefficient) {
         this.envelopeCoefficient = envelopeCoefficient;
         this.energyCoefficient = energyCoefficient;
         this.zeroCrossingCoefficient = zeroCrossingCoefficient;

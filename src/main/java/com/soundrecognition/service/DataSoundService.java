@@ -47,8 +47,15 @@ public class DataSoundService {
     }
 
     public DataSound save(DataSound dataSound) {
+        dataSound = calculateFullSignalFrequencyDomain(dataSound);
+        DataSoundParameters parameters = getDataSoundParameters(dataSound);
+        dataSoundRepository.save(dataSound);
+        dataSoundParametersRepository.save(parameters);
+        return dataSound;
+    }
 
-        int n = (int) (Math.toIntExact(dataSound.getPointsInGraphs())*dataSound.getNumOfGraphs());
+    private DataSound calculateFullSignalFrequencyDomain(DataSound dataSound) {
+        int n = (int) (Math.toIntExact(dataSound.getPointsInGraphs())* dataSound.getNumOfGraphs());
         var audioData = dataSound.getTimeDomainPoints();
         var transformer = new RealDoubleFFT(n);
         double[] toTransform = new double[n];
@@ -65,18 +72,57 @@ public class DataSoundService {
             //System.out.println(dataFreqDomain.size());
         }
         dataSound.setFreqDomainPoints(dataFreqDomain);
-        DataSoundParameters parameters = getDataSoundParameters(dataSound);
-
-        dataSoundRepository.save(dataSound);
-        dataSoundParametersRepository.save(parameters);
         return dataSound;
     }
 
-    public List<Pair<DataSound, SoundsCoefficients>> getMostSimilarSounds(DataSound newSound) {
+    public List<Pair<DataSound, SoundsFreqCoefficients>> getMostSimilarSoundsFreqDomain(DataSound newSound) {
+        var sounds = dataSoundRepository.findAll();
+        var newSoundWithFreq = calculateFullSignalFrequencyDomain(newSound);
+        var newSoundFreqValues = getFreqValues(newSoundWithFreq);
+
+        ArrayList<Pair<DataSound, SoundsFreqCoefficients>> mostSimilar = new ArrayList<>();
+
+
+        for (int i =0; i < sounds.size(); i++) {
+            var freqValues = getFreqValues(sounds.get(i));
+            System.out.println(freqValues);
+            var cor = CalculateSoundSimilarity.calculateCoefficient(newSoundFreqValues, freqValues, Math.min(newSoundFreqValues.size(),freqValues.size()));
+            System.out.println(cor);
+            //parameters.setFreqDomainPoints(new ArrayList<>());
+            mostSimilar.add(Pair.of(sounds.get(i), new SoundsFreqCoefficients(cor)));
+        }
+
+        Collections.sort(mostSimilar, new Comparator<Pair<DataSound, SoundsFreqCoefficients>>() {
+            @Override
+            public int compare(final Pair<DataSound, SoundsFreqCoefficients> o1, final Pair<DataSound, SoundsFreqCoefficients> o2) {
+                if (o1.getSecond().mergedCoefficient > o2.getSecond().mergedCoefficient) {
+                    return -1;
+                } else if (o1.getSecond().mergedCoefficient == (o2.getSecond().mergedCoefficient)) {
+                    return 0; // You can change this to make it then look at the
+                    //words alphabetical order
+                } else {
+                    return 1;
+                }
+            }
+        });
+        return mostSimilar.subList(0,Math.min(mostSimilar.size(),3));
+    }
+
+    private List<Double> getFreqValues(DataSound newSoundWithFreq) {
+        var freqDomain = newSoundWithFreq.getFreqDomainPoints();
+        int n = Math.toIntExact(freqDomain.size());
+        Double[] freqValues = new Double[n];
+        for(int i = 0; i < n; i++) {
+            freqValues[i] = freqDomain.get(i).getY();
+        }
+        return Arrays.asList(freqValues);
+    }
+
+    public List<Pair<DataSound, SoundsTimeCoefficients>> getMostSimilarSoundsTimeDomain(DataSound newSound) {
         var sounds = dataSoundRepository.findAll();
         var soundsParams = dataSoundParametersRepository.findAll();
         var newSoundParam = getDataSoundParameters(newSound);
-        ArrayList<Pair<DataSound,SoundsCoefficients>> mostSimilar = new ArrayList<>();
+        ArrayList<Pair<DataSound, SoundsTimeCoefficients>> mostSimilar = new ArrayList<>();
 
 
         for (int i =0; i < soundsParams.size(); i++) {
@@ -89,9 +135,9 @@ public class DataSoundService {
 
         }
 
-        Collections.sort(mostSimilar, new Comparator<Pair<DataSound, SoundsCoefficients>>() {
+        Collections.sort(mostSimilar, new Comparator<Pair<DataSound, SoundsTimeCoefficients>>() {
             @Override
-            public int compare(final Pair<DataSound, SoundsCoefficients> o1, final Pair<DataSound, SoundsCoefficients> o2) {
+            public int compare(final Pair<DataSound, SoundsTimeCoefficients> o1, final Pair<DataSound, SoundsTimeCoefficients> o2) {
                 if (o1.getSecond().mergedCoefficient > o2.getSecond().mergedCoefficient) {
                     return -1;
                 } else if (o1.getSecond().mergedCoefficient == (o2.getSecond().mergedCoefficient)) {

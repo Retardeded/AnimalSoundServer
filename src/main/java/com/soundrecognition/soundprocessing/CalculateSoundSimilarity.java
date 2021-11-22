@@ -3,10 +3,8 @@ package com.soundrecognition.soundprocessing;
 import com.soundrecognition.model.DataPoint;
 import com.soundrecognition.model.DataSound;
 import com.soundrecognition.model.DataSoundParameters;
-import com.soundrecognition.model.SoundsCoefficients;
+import com.soundrecognition.model.SoundsTimeCoefficients;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class CalculateSoundSimilarity {
@@ -80,7 +78,7 @@ public class CalculateSoundSimilarity {
         return (double) numCrossing / sound.getNumOfGraphs();
     }
 
-    public static SoundsCoefficients correlationParamsCoefficient(DataSoundParameters newSound, DataSoundParameters compareSound)
+    public static SoundsTimeCoefficients correlationParamsCoefficient(DataSoundParameters newSound, DataSoundParameters compareSound)
     {
         double envelopeCoefficient = calculateCoefficient(newSound.signalEnvelope, compareSound.signalEnvelope,Math.min(newSound.signalEnvelope.size(),compareSound.signalEnvelope.size()));
         double energyCoefficient = calculateCoefficient(newSound.rootMeanSquareEnergy, compareSound.rootMeanSquareEnergy,Math.min(newSound.rootMeanSquareEnergy.size(),compareSound.rootMeanSquareEnergy.size()));
@@ -89,10 +87,10 @@ public class CalculateSoundSimilarity {
         double zeroCrossingCoefficient = X < Y ? X/Y : Y/X;
         double coefficient = envelopeCoefficient * 0.4 + energyCoefficient * 0.4 + zeroCrossingCoefficient * 0.2;
 
-        return new SoundsCoefficients(envelopeCoefficient, energyCoefficient, zeroCrossingCoefficient, coefficient);
+        return new SoundsTimeCoefficients(envelopeCoefficient, energyCoefficient, zeroCrossingCoefficient, coefficient);
     }
 
-    private static double calculateCoefficient(List<Double> newSoundData, List<Double> compareSoundData, int n) {
+    public static double calculateCoefficient(List<Double> newSoundData, List<Double> compareSoundData, int n) {
         double sum_X = 0, sum_Y = 0, sum_XY = 0;
         double squareSum_X = 0, squareSum_Y = 0;
 
@@ -121,6 +119,7 @@ public class CalculateSoundSimilarity {
         return corr;
     }
 
+    /*
     public static double correlationCoefficient(DataSound newSound, DataSound compareSound)
     {
         var newSoundData = newSound.getFreqDomainPoints();
@@ -155,4 +154,6 @@ public class CalculateSoundSimilarity {
 
         return corr;
     }
+
+     */
 }

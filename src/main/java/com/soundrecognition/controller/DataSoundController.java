@@ -2,7 +2,8 @@ package com.soundrecognition.controller;
 
 
 import com.soundrecognition.model.DataSound;
-import com.soundrecognition.model.SoundsCoefficients;
+import com.soundrecognition.model.SoundsFreqCoefficients;
+import com.soundrecognition.model.SoundsTimeCoefficients;
 import com.soundrecognition.service.DataSoundService;
 import javassist.NotFoundException;
 import org.springframework.data.util.Pair;
@@ -59,10 +60,18 @@ public class DataSoundController {
     }
 
     @PostMapping("/check")
-    public List<Pair<DataSound, SoundsCoefficients>> checkSound(@RequestBody DataSound dataSound) {
-        var list = sounds.getMostSimilarSounds(dataSound);
+    public List<Pair<DataSound, SoundsTimeCoefficients>> checkSound(@RequestBody DataSound dataSound) {
+        var list = sounds.getMostSimilarSoundsTimeDomain(dataSound);
         return list;
     }
+
+    @PostMapping("/checkFreq")
+    public List<Pair<DataSound, SoundsFreqCoefficients>> checkSoundFrequencyDomain(@RequestBody DataSound dataSound) {
+        var list = sounds.getMostSimilarSoundsFreqDomain(dataSound);
+        return list;
+    }
+
+
 
     private Optional<DataSound> getDataSound(String id) throws NotFoundException {
         return sounds.getDataSound(Integer.parseInt(id));
