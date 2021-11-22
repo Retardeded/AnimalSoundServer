@@ -55,8 +55,8 @@ public class DataSoundService {
         var dataFreqDomain = new ArrayList<DataPoint>();
         for(int j = 0; j < 1; j++) {
             for (int i = 0; i < n; i++) {
-                //toTransform[i] = audioData[i].toDouble() / Short.MAX_VALUE
-                toTransform[i] = audioData.get(i+j*n).getY();
+                toTransform[i] = audioData.get(i+j*n).getY() / n;
+                //toTransform[i] = audioData.get(i+j*n).getY();
             }
             transformer.ft(toTransform);
             for (int i = 0; i < n; i++) {
