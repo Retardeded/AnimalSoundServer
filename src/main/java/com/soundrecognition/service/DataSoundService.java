@@ -55,21 +55,27 @@ public class DataSoundService {
     }
 
     private DataSound calculateFullSignalFrequencyDomain(DataSound dataSound) {
-        int n = (int) (Math.toIntExact(dataSound.getPointsInGraphs())* dataSound.getNumOfGraphs());
+        int n = Math.toIntExact(dataSound.getPointsInGraphs());
+        int m = Math.toIntExact(dataSound.getNumOfGraphs());
         var audioData = dataSound.getTimeDomainPoints();
+        var dataAmplitudeFullSignal = new double[n/2];
         var transformer = new RealDoubleFFT(n);
         double[] toTransform = new double[n];
         var dataFreqDomain = new ArrayList<DataPoint>();
-        for(int j = 0; j < 1; j++) {
+        for(int j = 0; j < m; j++) {
             for (int i = 0; i < n; i++) {
                 toTransform[i] = audioData.get(i+j*n).getY() / n;
                 //toTransform[i] = audioData.get(i+j*n).getY();
             }
             transformer.ft(toTransform);
-            for (int i = 0; i < n; i++) {
-                dataFreqDomain.add(new DataPoint(i+j*n, toTransform[i]));
+            for (int i = 0; i < n/2; i++) {
+                dataAmplitudeFullSignal[i] += toTransform[i*2+1] * toTransform[i*2+1] + toTransform[i*2] * toTransform[i*2];
+                //dataFreqDomain.add(new DataPoint(i, toTransform[i*2+1] * toTransform[i*2+1] + toTransform[i*2] * toTransform[i*2]));
             }
             //System.out.println(dataFreqDomain.size());
+        }
+        for (int i = 0; i < n/2; i++) {
+            dataFreqDomain.add(new DataPoint(i, dataAmplitudeFullSignal[i]/m));
         }
         dataSound.setFreqDomainPoints(dataFreqDomain);
         return dataSound;
