@@ -19,6 +19,9 @@ public class DataSoundParameters implements Serializable {
     @GeneratedValue
     private Integer id;
 
+    @Column
+    public String typeName;
+
     @ElementCollection
     @Column
     public List<Double> signalEnvelope;

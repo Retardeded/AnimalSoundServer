@@ -4,6 +4,7 @@ import ca.uol.aig.fftpack.RealDoubleFFT;
 import com.soundrecognition.model.*;
 import com.soundrecognition.repository.DataSoundParametersRepository;
 import com.soundrecognition.repository.DataSoundRepository;
+import com.soundrecognition.repository.SoundTypeParametersRepository;
 import com.soundrecognition.repository.SoundTypeRepository;
 import com.soundrecognition.soundprocessing.CalculateSoundSimilarity;
 import javassist.NotFoundException;
@@ -18,11 +19,13 @@ public class DataSoundService {
     private final DataSoundRepository dataSoundRepository;
     private final SoundTypeRepository soundTypeRepository;
     private final DataSoundParametersRepository dataSoundParametersRepository;
+    private final SoundTypeParametersRepository soundTypeParametersRepository;
 
-    DataSoundService(DataSoundRepository dataSoundRepository, SoundTypeRepository soundTypeRepository, DataSoundParametersRepository dataSoundParametersRepository) {
+    DataSoundService(DataSoundRepository dataSoundRepository, SoundTypeRepository soundTypeRepository, DataSoundParametersRepository dataSoundParametersRepository, SoundTypeParametersRepository soundTypeParametersRepository) {
         this.dataSoundRepository = dataSoundRepository;
         this.soundTypeRepository = soundTypeRepository;
         this.dataSoundParametersRepository = dataSoundParametersRepository;
+        this.soundTypeParametersRepository = soundTypeParametersRepository;
     }
 
     public List<DataSound> getDataSounds()
@@ -51,12 +54,35 @@ public class DataSoundService {
 
     public DataSound save(DataSound dataSound) {
         dataSound = calculateFullSignalFrequencyDomain(dataSound);
-        DataSoundParameters parameters = getDataSoundParameters(dataSound);
-        var sounds = Arrays.asList(dataSound);
-        SoundType soundType = new SoundType(dataSound.getType(), sounds, parameters);
-        dataSoundParametersRepository.save(parameters);
+        DataSoundParameters newSoundParams = getDataSoundParameters(dataSound);
+        DataSoundParameters newSoundParamsCopy = getDataSoundParameters(dataSound);
+        dataSoundParametersRepository.save(newSoundParams);
         dataSoundRepository.save(dataSound);
-        soundTypeRepository.save(soundType);
+        var soundTypeOptional = soundTypeRepository.findByName(dataSound.getType());
+        if(soundTypeOptional.isPresent()) {
+            var soundType = soundTypeOptional.get();
+
+            var paramsOptional = soundTypeParametersRepository.findByTypeName(soundType.getName());
+            if(paramsOptional.isPresent()) {
+                var paramsPresent = paramsOptional.get();
+                float n = (float) soundType.getDataSounds().size();
+                var currentZeroCrossingDensity = paramsPresent.zeroCrossingDensity;
+                paramsPresent.zeroCrossingDensity = currentZeroCrossingDensity * (n/(n+1)) + newSoundParamsCopy.getZeroCrossingDensity() / (n+1);
+
+                var list = soundType.getDataSounds();
+                list.add(dataSound);
+                soundTypeParametersRepository.save(paramsPresent);
+            }
+        }  else {
+            System.out.println("tuuu1");
+            newSoundParamsCopy.typeName = dataSound.getType();
+            var sounds = Arrays.asList(dataSound);
+            SoundType newSoundType = new SoundType(dataSound.getType(), sounds, newSoundParamsCopy);
+            soundTypeParametersRepository.save(newSoundParamsCopy);
+            soundTypeRepository.save(newSoundType);
+            System.out.println("tuuu1");
+        }
+
         return dataSound;
     }
 
@@ -131,11 +157,13 @@ public class DataSoundService {
     }
 
     public List<Pair<SoundType, SoundsTimeCoefficients>> getMostSimilarSoundsTimeDomain(DataSound newSound) {
-        var sounds = dataSoundRepository.findAll();
         var soundsParams = soundTypeRepository.findAll();
         var newSoundParam = getDataSoundParameters(newSound);
         ArrayList<Pair<SoundType, SoundsTimeCoefficients>> mostSimilar = new ArrayList<>();
 
+        System.out.println("TUUUU");
+        System.out.println(soundsParams.size());
+        System.out.println("TUUUU");
 
         for (int i =0; i < soundsParams.size(); i++) {
             var params = soundsParams.get(i).dataSoundParameters;

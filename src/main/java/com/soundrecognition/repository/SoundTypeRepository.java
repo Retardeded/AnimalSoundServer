@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface SoundTypeRepository extends JpaRepository<SoundType, Integer> {
-    Optional<SoundType> findById(Integer id);
+public interface SoundTypeRepository extends JpaRepository<SoundType, String> {
+    Optional<SoundType> findByName(String name);
 }
