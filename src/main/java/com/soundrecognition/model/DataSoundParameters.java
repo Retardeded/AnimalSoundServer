@@ -5,30 +5,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import java.util.Comparator;
+import java.io.Serializable;
 import java.util.List;
-
 
 @Data
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class DataSoundParameters {
+public class DataSoundParameters implements Serializable {
+
     @Id
     @Column
     @GeneratedValue
     private Integer id;
-
-    public DataSoundParameters(List<Double> signalEnvelope) {
-        this.signalEnvelope = signalEnvelope;
-    }
-
-    public DataSoundParameters(List<Double> signalEnvelope, List<Double> rootMeanSquareEnergy, Double zeroCrossingDensity) {
-        this.signalEnvelope = signalEnvelope;
-        this.rootMeanSquareEnergy = rootMeanSquareEnergy;
-        this.zeroCrossingDensity = zeroCrossingDensity;
-    }
 
     @ElementCollection
     @Column
@@ -38,8 +27,13 @@ public class DataSoundParameters {
     @Column
     public List<Double> rootMeanSquareEnergy;
 
-    @Column
     public Double zeroCrossingDensity;
+
+    public DataSoundParameters(List<Double> signalEnvelope, List<Double> rootMeanSquareEnergy, Double zeroCrossingDensity) {
+        this.signalEnvelope = signalEnvelope;
+        this.rootMeanSquareEnergy = rootMeanSquareEnergy;
+        this.zeroCrossingDensity = zeroCrossingDensity;
+    }
 
     @Override
     public String toString() {
@@ -49,4 +43,5 @@ public class DataSoundParameters {
                 ", zeroCrossingDensity=" + zeroCrossingDensity +
                 '}';
     }
+
 }

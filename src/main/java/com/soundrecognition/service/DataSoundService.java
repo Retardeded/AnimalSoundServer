@@ -4,6 +4,7 @@ import ca.uol.aig.fftpack.RealDoubleFFT;
 import com.soundrecognition.model.*;
 import com.soundrecognition.repository.DataSoundParametersRepository;
 import com.soundrecognition.repository.DataSoundRepository;
+import com.soundrecognition.repository.SoundTypeRepository;
 import com.soundrecognition.soundprocessing.CalculateSoundSimilarity;
 import javassist.NotFoundException;
 import org.springframework.data.util.Pair;
@@ -15,10 +16,12 @@ import java.util.*;
 public class DataSoundService {
 
     private final DataSoundRepository dataSoundRepository;
+    private final SoundTypeRepository soundTypeRepository;
     private final DataSoundParametersRepository dataSoundParametersRepository;
 
-    DataSoundService(DataSoundRepository dataSoundRepository, DataSoundParametersRepository dataSoundParametersRepository) {
+    DataSoundService(DataSoundRepository dataSoundRepository, SoundTypeRepository soundTypeRepository, DataSoundParametersRepository dataSoundParametersRepository) {
         this.dataSoundRepository = dataSoundRepository;
+        this.soundTypeRepository = soundTypeRepository;
         this.dataSoundParametersRepository = dataSoundParametersRepository;
     }
 
@@ -49,8 +52,11 @@ public class DataSoundService {
     public DataSound save(DataSound dataSound) {
         dataSound = calculateFullSignalFrequencyDomain(dataSound);
         DataSoundParameters parameters = getDataSoundParameters(dataSound);
-        dataSoundRepository.save(dataSound);
+        var sounds = Arrays.asList(dataSound);
+        SoundType soundType = new SoundType(dataSound.getType(), sounds, parameters);
         dataSoundParametersRepository.save(parameters);
+        dataSoundRepository.save(dataSound);
+        soundTypeRepository.save(soundType);
         return dataSound;
     }
 
@@ -124,26 +130,25 @@ public class DataSoundService {
         return Arrays.asList(freqValues);
     }
 
-    public List<Pair<DataSound, SoundsTimeCoefficients>> getMostSimilarSoundsTimeDomain(DataSound newSound) {
+    public List<Pair<SoundType, SoundsTimeCoefficients>> getMostSimilarSoundsTimeDomain(DataSound newSound) {
         var sounds = dataSoundRepository.findAll();
-        var soundsParams = dataSoundParametersRepository.findAll();
+        var soundsParams = soundTypeRepository.findAll();
         var newSoundParam = getDataSoundParameters(newSound);
-        ArrayList<Pair<DataSound, SoundsTimeCoefficients>> mostSimilar = new ArrayList<>();
+        ArrayList<Pair<SoundType, SoundsTimeCoefficients>> mostSimilar = new ArrayList<>();
 
 
         for (int i =0; i < soundsParams.size(); i++) {
-            var params = soundsParams.get(i);
+            var params = soundsParams.get(i).dataSoundParameters;
             System.out.println(params);
             var cor = CalculateSoundSimilarity.correlationParamsCoefficient(params, newSoundParam);
             System.out.println(cor);
             //parameters.setFreqDomainPoints(new ArrayList<>());
-            mostSimilar.add(Pair.of(sounds.get(i), cor));
-
+            mostSimilar.add(Pair.of(soundsParams.get(i), cor));
         }
 
-        Collections.sort(mostSimilar, new Comparator<Pair<DataSound, SoundsTimeCoefficients>>() {
+        Collections.sort(mostSimilar, new Comparator<Pair<SoundType, SoundsTimeCoefficients>>() {
             @Override
-            public int compare(final Pair<DataSound, SoundsTimeCoefficients> o1, final Pair<DataSound, SoundsTimeCoefficients> o2) {
+            public int compare(final Pair<SoundType, SoundsTimeCoefficients> o1, final Pair<SoundType, SoundsTimeCoefficients> o2) {
                 if (o1.getSecond().mergedCoefficient > o2.getSecond().mergedCoefficient) {
                     return -1;
                 } else if (o1.getSecond().mergedCoefficient == (o2.getSecond().mergedCoefficient)) {

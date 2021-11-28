@@ -2,6 +2,7 @@ package com.soundrecognition.controller;
 
 
 import com.soundrecognition.model.DataSound;
+import com.soundrecognition.model.SoundType;
 import com.soundrecognition.model.SoundsFreqCoefficients;
 import com.soundrecognition.model.SoundsTimeCoefficients;
 import com.soundrecognition.service.DataSoundService;
@@ -60,7 +61,7 @@ public class DataSoundController {
     }
 
     @PostMapping("/check")
-    public List<Pair<DataSound, SoundsTimeCoefficients>> checkSound(@RequestBody DataSound dataSound) {
+    public List<Pair<SoundType, SoundsTimeCoefficients>> checkSound(@RequestBody DataSound dataSound) {
         var list = sounds.getMostSimilarSoundsTimeDomain(dataSound);
         return list;
     }

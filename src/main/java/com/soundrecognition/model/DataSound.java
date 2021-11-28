@@ -1,15 +1,10 @@
 package com.soundrecognition.model;
 
-import com.soundrecognition.model.DataPoint;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.util.Comparator;
 import java.util.List;
@@ -25,9 +20,11 @@ public class DataSound implements Comparator<DataPoint> {
     @GeneratedValue
     private Integer id;
 
-    @NotBlank
     @Column
     private String title;
+
+    @Column
+    private String type;
 
     @NotBlank
     @Column
@@ -53,6 +50,9 @@ public class DataSound implements Comparator<DataPoint> {
     public void setFreqDomainPoints(List<DataPoint> dataPoints) {
         this.freqDomainPoints = dataPoints;
     }
+
+    @OneToOne(cascade = {CascadeType.ALL})
+    private DataSoundParameters dataSoundParameters;
 
     @ElementCollection
     @Column

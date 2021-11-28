@@ -1,5 +1,6 @@
 package com.soundrecognition.repository;
 
+import com.soundrecognition.model.DataSound;
 import com.soundrecognition.model.DataSoundParameters;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
