@@ -32,7 +32,8 @@ public class DataSoundParameters implements Serializable {
 
     public Double zeroCrossingDensity;
 
-    public DataSoundParameters(List<Double> signalEnvelope, List<Double> rootMeanSquareEnergy, Double zeroCrossingDensity) {
+    public DataSoundParameters(String type, List<Double> signalEnvelope, List<Double> rootMeanSquareEnergy, Double zeroCrossingDensity) {
+        this.typeName = type;
         this.signalEnvelope = signalEnvelope;
         this.rootMeanSquareEnergy = rootMeanSquareEnergy;
         this.zeroCrossingDensity = zeroCrossingDensity;

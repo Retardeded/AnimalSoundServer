@@ -37,25 +37,30 @@ public class DataSoundService {
     {
         ArrayList<DataSound> data = new ArrayList<>();
         for (var sound: dataSoundRepository.findAll() ) {
-            sound.setFreqDomainPoints(new ArrayList<>());
-            sound.setTimeDomainPoints(new ArrayList<>());
+            cleanSoundData(sound);
             data.add(sound);
         }
         return data;
+    }
+
+    private void cleanSoundData(DataSound sound) {
+        sound.setFreqDomainPoints(new ArrayList<>());
+        sound.setTimeDomainPoints(new ArrayList<>());
     }
 
     private DataSoundParameters getDataSoundParameters(DataSound dataSound) {
         var zeroCrossingDensity = CalculateSoundSimilarity.zeroCrossingDensity(dataSound);
         var rootMeanSquareEnergy = CalculateSoundSimilarity.rootMeanSquareEnergy(dataSound);
         var signalEnvelope = CalculateSoundSimilarity.signalEnvelope(dataSound);
-        var parameters = new DataSoundParameters(Arrays.asList(signalEnvelope), Arrays.asList(rootMeanSquareEnergy), zeroCrossingDensity);
+        var parameters = new DataSoundParameters("", Arrays.asList(signalEnvelope), Arrays.asList(rootMeanSquareEnergy), zeroCrossingDensity);
         return parameters;
     }
 
     public DataSound save(DataSound dataSound) {
         dataSound = calculateFullSignalFrequencyDomain(dataSound);
         DataSoundParameters newSoundParams = getDataSoundParameters(dataSound);
-        DataSoundParameters newSoundParamsCopy = getDataSoundParameters(dataSound);
+        dataSound.setDataSoundParameters(newSoundParams);
+        DataSoundParameters newSoundParamsCopy = new DataSoundParameters(dataSound.getType(), newSoundParams.signalEnvelope, newSoundParams.rootMeanSquareEnergy, newSoundParams.zeroCrossingDensity);
         dataSoundParametersRepository.save(newSoundParams);
         dataSoundRepository.save(dataSound);
         var soundTypeOptional = soundTypeRepository.findByName(dataSound.getType());
@@ -69,7 +74,12 @@ public class DataSoundService {
                 var currentZeroCrossingDensity = paramsPresent.zeroCrossingDensity;
                 paramsPresent.zeroCrossingDensity = currentZeroCrossingDensity * (n/(n+1)) + newSoundParamsCopy.getZeroCrossingDensity() / (n+1);
 
+                calculateNewParamAverage(paramsPresent.signalEnvelope, newSoundParamsCopy.getSignalEnvelope(), n);
+                calculateNewParamAverage(paramsPresent.rootMeanSquareEnergy, newSoundParamsCopy.getRootMeanSquareEnergy(), n);
+
+
                 var list = soundType.getDataSounds();
+                cleanSoundData(dataSound);
                 list.add(dataSound);
                 soundTypeParametersRepository.save(paramsPresent);
             }
@@ -84,6 +94,19 @@ public class DataSoundService {
         }
 
         return dataSound;
+    }
+
+    private void calculateNewParamAverage(List<Double> signalEnvelopePresent, List<Double> signalEnvelopeNew, float n) {
+        int minSize = Math.min(signalEnvelopeNew.size(), signalEnvelopePresent.size());
+        for(int i = 0; i < minSize; i++) {
+            signalEnvelopePresent.set(i, signalEnvelopePresent.get(i) * (n / (n + 1)) + signalEnvelopeNew.get(i) / (n + 1));
+        }
+        if(minSize == signalEnvelopePresent.size()) {
+            int maxSize = Math.max(signalEnvelopeNew.size(), signalEnvelopePresent.size());
+            for(int i = minSize; i < maxSize;i++) {
+                signalEnvelopePresent.add(signalEnvelopeNew.get(i));
+            }
+        }
     }
 
     private DataSound calculateFullSignalFrequencyDomain(DataSound dataSound) {
