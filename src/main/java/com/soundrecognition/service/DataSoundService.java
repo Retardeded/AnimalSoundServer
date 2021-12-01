@@ -60,7 +60,7 @@ public class DataSoundService {
         dataSound = calculateFullSignalFrequencyDomain(dataSound);
         DataSoundParameters newSoundParams = getDataSoundParameters(dataSound);
         dataSound.setDataSoundParameters(newSoundParams);
-        DataSoundParameters newSoundParamsCopy = new DataSoundParameters(dataSound.getType(), newSoundParams.signalEnvelope, newSoundParams.rootMeanSquareEnergy, newSoundParams.zeroCrossingDensity);
+        SoundTypeParameters newSoundParamsCopy = new SoundTypeParameters(dataSound.getType(), newSoundParams.signalEnvelope, newSoundParams.rootMeanSquareEnergy, newSoundParams.zeroCrossingDensity);
         dataSoundParametersRepository.save(newSoundParams);
         dataSoundRepository.save(dataSound);
         var soundTypeOptional = soundTypeRepository.findByName(dataSound.getType());
@@ -70,12 +70,12 @@ public class DataSoundService {
             var paramsOptional = soundTypeParametersRepository.findByTypeName(soundType.getName());
             if(paramsOptional.isPresent()) {
                 var paramsPresent = paramsOptional.get();
-                float n = (float) soundType.getDataSounds().size();
+                float n = soundType.getDataSounds().size();
                 var currentZeroCrossingDensity = paramsPresent.zeroCrossingDensity;
-                paramsPresent.zeroCrossingDensity = currentZeroCrossingDensity * (n/(n+1)) + newSoundParamsCopy.getZeroCrossingDensity() / (n+1);
+                paramsPresent.zeroCrossingDensity = (int)(currentZeroCrossingDensity * (n/(n+1)) + newSoundParamsCopy.getZeroCrossingDensity() / (n+1));
 
-                calculateNewParamAverage(paramsPresent.signalEnvelope, newSoundParamsCopy.getSignalEnvelope(), n);
-                calculateNewParamAverage(paramsPresent.rootMeanSquareEnergy, newSoundParamsCopy.getRootMeanSquareEnergy(), n);
+                calculateNewParamAverageAdd(paramsPresent.signalEnvelope, newSoundParamsCopy.getSignalEnvelope(), n);
+                calculateNewParamAverageAdd(paramsPresent.rootMeanSquareEnergy, newSoundParamsCopy.getRootMeanSquareEnergy(), n);
 
 
                 var list = soundType.getDataSounds();
@@ -96,18 +96,31 @@ public class DataSoundService {
         return dataSound;
     }
 
-    private void calculateNewParamAverage(List<Double> signalEnvelopePresent, List<Double> signalEnvelopeNew, float n) {
-        int minSize = Math.min(signalEnvelopeNew.size(), signalEnvelopePresent.size());
+    private void calculateNewParamAverageAdd(List<Integer> parametersPresent, List<Integer> parametersNew, float n) {
+        int minSize = Math.min(parametersNew.size(), parametersPresent.size());
         for(int i = 0; i < minSize; i++) {
-            signalEnvelopePresent.set(i, signalEnvelopePresent.get(i) * (n / (n + 1)) + signalEnvelopeNew.get(i) / (n + 1));
+            parametersPresent.set(i,(int) (parametersPresent.get(i) * (n / (n + 1)) + parametersNew.get(i) / (n + 1)));
         }
-        if(minSize == signalEnvelopePresent.size()) {
-            int maxSize = Math.max(signalEnvelopeNew.size(), signalEnvelopePresent.size());
+        if(minSize == parametersPresent.size()) {
+            int maxSize = Math.max(parametersNew.size(), parametersPresent.size());
             for(int i = minSize; i < maxSize;i++) {
-                signalEnvelopePresent.add(signalEnvelopeNew.get(i));
+                parametersPresent.add(parametersNew.get(i));
             }
         }
     }
+
+    private void calculateNewParamAverageDelete(List<Integer> parametersType, List<Integer> parametersSound, float n) {
+        int minSize = parametersType.size();
+        for(int i = 0; i < minSize; i++) {
+            parametersType.set(i,(int) ((parametersType.get(i) * n  - parametersSound.get(i) ) / (n + 1)));
+        }
+
+        while(parametersType.get(parametersType.size()-1) <= 0.5) {
+            parametersType.remove(parametersType.size()-1);
+            //parametersType.set(i, (parametersType.get(i) * n  - parametersSound.get(i) ) / (n + 1));
+        }
+    }
+
 
     private DataSound calculateFullSignalFrequencyDomain(DataSound dataSound) {
         int n = Math.toIntExact(dataSound.getPointsInGraphs());
@@ -169,32 +182,33 @@ public class DataSoundService {
         return mostSimilar.subList(0,Math.min(mostSimilar.size(),3));
     }
 
-    private List<Double> getFreqValues(DataSound newSoundWithFreq) {
+
+    private List<Integer> getFreqValues(DataSound newSoundWithFreq) {
         var freqDomain = newSoundWithFreq.getFreqDomainPoints();
         int n = Math.toIntExact(freqDomain.size());
-        Double[] freqValues = new Double[n];
+        Integer[] freqValues = new Integer[n];
         for(int i = 0; i < n; i++) {
-            freqValues[i] = freqDomain.get(i).getY();
+            freqValues[i] = (int) freqDomain.get(i).getY();
         }
         return Arrays.asList(freqValues);
     }
 
     public List<Pair<SoundType, SoundsTimeCoefficients>> getMostSimilarSoundsTimeDomain(DataSound newSound) {
-        var soundsParams = soundTypeRepository.findAll();
+        var typesParams = soundTypeRepository.findAll();
         var newSoundParam = getDataSoundParameters(newSound);
         ArrayList<Pair<SoundType, SoundsTimeCoefficients>> mostSimilar = new ArrayList<>();
 
         System.out.println("TUUUU");
-        System.out.println(soundsParams.size());
+        System.out.println(typesParams.size());
         System.out.println("TUUUU");
 
-        for (int i =0; i < soundsParams.size(); i++) {
-            var params = soundsParams.get(i).dataSoundParameters;
+        for (int i =0; i < typesParams.size(); i++) {
+            var params = typesParams.get(i).soundTypeParameters;
             System.out.println(params);
             var cor = CalculateSoundSimilarity.correlationParamsCoefficient(params, newSoundParam);
             System.out.println(cor);
             //parameters.setFreqDomainPoints(new ArrayList<>());
-            mostSimilar.add(Pair.of(soundsParams.get(i), cor));
+            mostSimilar.add(Pair.of(typesParams.get(i), cor));
         }
 
         Collections.sort(mostSimilar, new Comparator<Pair<SoundType, SoundsTimeCoefficients>>() {
@@ -223,6 +237,14 @@ public class DataSoundService {
     }
 
     public void delete(DataSound dataSound) {
+        var soundTypeOptional = soundTypeRepository.findByName(dataSound.getType());
+        if(soundTypeOptional.isPresent()) {
+            var soundType = soundTypeOptional.get();
+            var paramsType = soundType.soundTypeParameters;
+            soundTypeParametersRepository.delete(paramsType);
+            soundTypeRepository.delete(soundType);
+            }
+        dataSoundParametersRepository.delete(dataSound.getDataSoundParameters());
         dataSoundRepository.delete(dataSound);
     }
 

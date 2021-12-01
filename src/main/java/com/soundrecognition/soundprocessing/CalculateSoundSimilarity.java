@@ -1,25 +1,22 @@
 package com.soundrecognition.soundprocessing;
 
-import com.soundrecognition.model.DataPoint;
-import com.soundrecognition.model.DataSound;
-import com.soundrecognition.model.DataSoundParameters;
-import com.soundrecognition.model.SoundsTimeCoefficients;
+import com.soundrecognition.model.*;
 
 import java.util.List;
 
 public class CalculateSoundSimilarity {
 
-    public static Double[] signalEnvelope(DataSound sound) {
+    public static Integer[] signalEnvelope(DataSound sound) {
         int n = Math.toIntExact(sound.getNumOfGraphs());
         int m = Math.toIntExact(sound.getPointsInGraphs());
-        Double[] signalEnvelopeArray = new Double[n];
+        Integer[] signalEnvelopeArray = new Integer[n];
 
         for(int i = 0; i < n; i++) {
             var singleGraph = sound.getTimeDomainPoints().subList(i*m, (i+1)*m);
-            double max = 0;
+            int max = 0;
             for(var point:singleGraph) {
                 if(Math.abs(point.getY()) > max)
-                    max = Math.abs(point.getY());
+                    max = Math.abs((int)point.getY());
             }
             signalEnvelopeArray[i] = max;
         }
@@ -27,10 +24,10 @@ public class CalculateSoundSimilarity {
         return signalEnvelopeArray;
     }
 
-    public static Double[] rootMeanSquareEnergy(DataSound sound) {
+    public static Integer[] rootMeanSquareEnergy(DataSound sound) {
         int n = Math.toIntExact(sound.getNumOfGraphs());
         int m = Math.toIntExact(sound.getPointsInGraphs());
-        Double[] signalEnvelopeArray = new Double[n];
+        Integer[] signalEnvelopeArray = new Integer[n];
 
         for(int i = 0; i < n; i++) {
             var singleGraph = sound.getTimeDomainPoints().subList(i*m, (i+1)*m);
@@ -41,7 +38,7 @@ public class CalculateSoundSimilarity {
         return signalEnvelopeArray;
     }
 
-    static double rmsValue(List<DataPoint> arr, int n)
+    static int rmsValue(List<DataPoint> arr, int n)
     {
         double square = 0;
         double mean = 0;
@@ -59,10 +56,10 @@ public class CalculateSoundSimilarity {
         // Calculate Root.
         root = Math.sqrt(mean);
 
-        return root;
+        return (int) root;
     }
 
-    public static double zeroCrossingDensity(DataSound sound)
+    public static int zeroCrossingDensity(DataSound sound)
     {
         var timePoints = sound.getTimeDomainPoints();
 
@@ -75,22 +72,22 @@ public class CalculateSoundSimilarity {
                 numCrossing++;
             }
         }
-        return (double) numCrossing / sound.getNumOfGraphs();
+        return (int) (numCrossing / sound.getNumOfGraphs());
     }
 
-    public static SoundsTimeCoefficients correlationParamsCoefficient(DataSoundParameters newSound, DataSoundParameters compareSound)
+    public static SoundsTimeCoefficients correlationParamsCoefficient(SoundTypeParameters typeSound, DataSoundParameters newSound)
     {
-        double envelopeCoefficient = calculateCoefficient(newSound.signalEnvelope, compareSound.signalEnvelope,Math.min(newSound.signalEnvelope.size(),compareSound.signalEnvelope.size()));
-        double energyCoefficient = calculateCoefficient(newSound.rootMeanSquareEnergy, compareSound.rootMeanSquareEnergy,Math.min(newSound.rootMeanSquareEnergy.size(),compareSound.rootMeanSquareEnergy.size()));
+        double envelopeCoefficient = calculateCoefficient(newSound.signalEnvelope, typeSound.signalEnvelope,Math.min(newSound.signalEnvelope.size(),typeSound.signalEnvelope.size()));
+        double energyCoefficient = calculateCoefficient(newSound.rootMeanSquareEnergy, typeSound.rootMeanSquareEnergy,Math.min(newSound.rootMeanSquareEnergy.size(),typeSound.rootMeanSquareEnergy.size()));
         var X = newSound.zeroCrossingDensity;
-        var Y = compareSound.zeroCrossingDensity;
+        var Y = typeSound.zeroCrossingDensity;
         double zeroCrossingCoefficient = X < Y ? X/Y : Y/X;
         double coefficient = envelopeCoefficient * 0.4 + energyCoefficient * 0.4 + zeroCrossingCoefficient * 0.2;
 
         return new SoundsTimeCoefficients(envelopeCoefficient, energyCoefficient, zeroCrossingCoefficient, coefficient);
     }
 
-    public static double calculateCoefficient(List<Double> newSoundData, List<Double> compareSoundData, int n) {
+    public static double calculateCoefficient(List<Integer> soundTypeData,List<Integer> newSoundData, int n) {
         double sum_X = 0, sum_Y = 0, sum_XY = 0;
         double squareSum_X = 0, squareSum_Y = 0;
 
@@ -98,7 +95,7 @@ public class CalculateSoundSimilarity {
         {
             // sum of elements of array X.
             double X = newSoundData.get(i);
-            double Y = compareSoundData.get(i);
+            double Y = soundTypeData.get(i);
             sum_X = sum_X + X;
 
             // sum of elements of array Y.

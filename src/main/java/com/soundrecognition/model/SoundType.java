@@ -18,10 +18,10 @@ public class SoundType {
         this.dataSounds = dataSounds;
     }
 
-    public SoundType(String name, List<DataSound> dataSounds, DataSoundParameters dataSoundParameters) {
+    public SoundType(String name, List<DataSound> dataSounds, SoundTypeParameters soundTypeParameters) {
         this.name = name;
         this.dataSounds = dataSounds;
-        this.dataSoundParameters = dataSoundParameters;
+        this.soundTypeParameters = soundTypeParameters;
     }
 
     @Id
@@ -37,5 +37,5 @@ public class SoundType {
     private List<DataSound> dataSounds;
 
     @OneToOne(cascade = {CascadeType.ALL})
-    public DataSoundParameters dataSoundParameters;
+    public SoundTypeParameters soundTypeParameters;
 }

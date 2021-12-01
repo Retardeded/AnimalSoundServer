@@ -3,6 +3,7 @@ package com.soundrecognition.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.relational.core.sql.In;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -12,7 +13,7 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class DataSoundParameters implements Serializable {
+public class SoundTypeParameters implements Serializable {
 
     @Id
     @Column
@@ -32,7 +33,7 @@ public class DataSoundParameters implements Serializable {
 
     public Integer zeroCrossingDensity;
 
-    public DataSoundParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, Integer zeroCrossingDensity) {
+    public SoundTypeParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, Integer zeroCrossingDensity) {
         this.typeName = type;
         this.signalEnvelope = signalEnvelope;
         this.rootMeanSquareEnergy = rootMeanSquareEnergy;
