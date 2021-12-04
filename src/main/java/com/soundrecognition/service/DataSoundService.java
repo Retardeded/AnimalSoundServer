@@ -43,6 +43,24 @@ public class DataSoundService {
         return data;
     }
 
+    public List<SoundType> getSoundTypes()
+    {
+        ArrayList<SoundType> data = new ArrayList<>();
+        for (var soundType: soundTypeRepository.findAll() ) {
+            cleanSoundTypeData(soundType);
+            data.add(soundType);
+        }
+        return data;
+    }
+
+    private void cleanSoundTypeData(SoundType soundType) {
+        for (var sound:soundType.getDataSounds())
+        {
+            sound.setFreqDomainPoints(new ArrayList<>());
+            sound.setTimeDomainPoints(new ArrayList<>());
+        }
+    }
+
     private void cleanSoundData(DataSound sound) {
         sound.setFreqDomainPoints(new ArrayList<>());
         sound.setTimeDomainPoints(new ArrayList<>());

@@ -32,9 +32,14 @@ public class DataSoundController {
         return ResponseEntity.ok(sounds.getDataSounds());
     }
 
-    @GetMapping("/soundInfo")
-    public ResponseEntity<List<DataSound>> getSoundInfoOnly() {
+    @GetMapping("/soundsInfo")
+    public ResponseEntity<List<DataSound>> getSoundsInfoOnly() {
         return ResponseEntity.ok(sounds.getSoundInfoOnly());
+    }
+
+    @GetMapping("/soundTypes")
+    public ResponseEntity<List<SoundType>> getSoundTypes() {
+        return ResponseEntity.ok(sounds.getSoundTypes());
     }
 
 
