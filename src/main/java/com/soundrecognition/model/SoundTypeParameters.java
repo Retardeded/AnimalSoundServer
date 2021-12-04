@@ -1,18 +1,16 @@
 package com.soundrecognition.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.relational.core.sql.In;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
 
-@Data
-@Entity
-@AllArgsConstructor
 @NoArgsConstructor
+@Setter
+@Getter
+@Entity
 public class SoundTypeParameters implements Serializable {
 
     @Id

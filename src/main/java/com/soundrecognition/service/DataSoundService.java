@@ -63,35 +63,38 @@ public class DataSoundService {
         SoundTypeParameters newSoundParamsCopy = new SoundTypeParameters(dataSound.getType(), newSoundParams.signalEnvelope, newSoundParams.rootMeanSquareEnergy, newSoundParams.zeroCrossingDensity);
         dataSoundParametersRepository.save(newSoundParams);
         dataSoundRepository.save(dataSound);
-        var soundTypeOptional = soundTypeRepository.findByName(dataSound.getType());
-        if(soundTypeOptional.isPresent()) {
-            var soundType = soundTypeOptional.get();
+        if(!dataSound.getType().equals("")) {
+            var soundTypeOptional = soundTypeRepository.findByName(dataSound.getType());
+            if(soundTypeOptional.isPresent()) {
+                var soundType = soundTypeOptional.get();
 
-            var paramsOptional = soundTypeParametersRepository.findByTypeName(soundType.getName());
-            if(paramsOptional.isPresent()) {
-                var paramsPresent = paramsOptional.get();
-                float n = soundType.getDataSounds().size();
-                var currentZeroCrossingDensity = paramsPresent.zeroCrossingDensity;
-                paramsPresent.zeroCrossingDensity = (int)(currentZeroCrossingDensity * (n/(n+1)) + newSoundParamsCopy.getZeroCrossingDensity() / (n+1));
+                var paramsOptional = soundTypeParametersRepository.findByTypeName(soundType.getName());
+                if(paramsOptional.isPresent()) {
+                    var paramsPresent = paramsOptional.get();
+                    float n = soundType.getDataSounds().size();
+                    var currentZeroCrossingDensity = paramsPresent.zeroCrossingDensity;
+                    paramsPresent.zeroCrossingDensity = (int)(currentZeroCrossingDensity * (n/(n+1)) + newSoundParamsCopy.getZeroCrossingDensity() / (n+1));
 
-                calculateNewParamAverageAdd(paramsPresent.signalEnvelope, newSoundParamsCopy.getSignalEnvelope(), n);
-                calculateNewParamAverageAdd(paramsPresent.rootMeanSquareEnergy, newSoundParamsCopy.getRootMeanSquareEnergy(), n);
+                    calculateNewParamAverageAdd(paramsPresent.signalEnvelope, newSoundParamsCopy.getSignalEnvelope(), n);
+                    calculateNewParamAverageAdd(paramsPresent.rootMeanSquareEnergy, newSoundParamsCopy.getRootMeanSquareEnergy(), n);
 
 
-                var list = soundType.getDataSounds();
-                cleanSoundData(dataSound);
-                list.add(dataSound);
-                soundTypeParametersRepository.save(paramsPresent);
+                    var list = soundType.getDataSounds();
+                    cleanSoundData(dataSound);
+                    list.add(dataSound);
+                    soundTypeParametersRepository.save(paramsPresent);
+                }
+            }  else {
+                System.out.println("tuuu1");
+                newSoundParamsCopy.typeName = dataSound.getType();
+                var sounds = Arrays.asList(dataSound);
+                SoundType newSoundType = new SoundType(dataSound.getType(), sounds, newSoundParamsCopy);
+                soundTypeParametersRepository.save(newSoundParamsCopy);
+                soundTypeRepository.save(newSoundType);
+                System.out.println("tuuu1");
             }
-        }  else {
-            System.out.println("tuuu1");
-            newSoundParamsCopy.typeName = dataSound.getType();
-            var sounds = Arrays.asList(dataSound);
-            SoundType newSoundType = new SoundType(dataSound.getType(), sounds, newSoundParamsCopy);
-            soundTypeParametersRepository.save(newSoundParamsCopy);
-            soundTypeRepository.save(newSoundType);
-            System.out.println("tuuu1");
         }
+
 
         return dataSound;
     }
@@ -244,8 +247,10 @@ public class DataSoundService {
             soundTypeParametersRepository.delete(paramsType);
             soundTypeRepository.delete(soundType);
             }
-        dataSoundParametersRepository.delete(dataSound.getDataSoundParameters());
-        dataSoundRepository.delete(dataSound);
+        else {
+            dataSoundRepository.delete(dataSound);
+        }
+        //dataSoundParametersRepository.delete(dataSound.getDataSoundParameters());
     }
 
     private ArrayList<DataGraph> loadDataSound(List<DataPoint> soundData, Integer pointsInGraphs) {

@@ -36,6 +36,6 @@ public class SoundType {
     @OneToMany(cascade = {CascadeType.ALL})
     private List<DataSound> dataSounds;
 
-    @OneToOne(cascade = {CascadeType.ALL})
+    @OneToOne(cascade = {CascadeType.ALL}, orphanRemoval = true)
     public SoundTypeParameters soundTypeParameters;
 }

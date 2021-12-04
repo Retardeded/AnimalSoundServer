@@ -1,8 +1,6 @@
 package com.soundrecognition.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -10,11 +8,14 @@ import java.util.Comparator;
 import java.util.List;
 
 
-@Data
+@Table
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class DataSound implements Comparator<DataPoint> {
+
     @Id
     @Column
     @GeneratedValue
@@ -51,7 +52,11 @@ public class DataSound implements Comparator<DataPoint> {
         this.freqDomainPoints = dataPoints;
     }
 
-    @OneToOne(cascade = {CascadeType.ALL})
+    //@JoinColumn()
+    //@OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
+    //private DataSoundParameters dataSoundParameters;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private DataSoundParameters dataSoundParameters;
 
     @ElementCollection
@@ -60,6 +65,14 @@ public class DataSound implements Comparator<DataPoint> {
 
     public void setTimeDomainPoints(List<DataPoint> dataPoints) {
         this.timeDomainPoints = dataPoints;
+    }
+
+    public List<DataPoint> getFreqDomainPoints() {
+        return freqDomainPoints;
+    }
+
+    public List<DataPoint> getTimeDomainPoints() {
+        return timeDomainPoints;
     }
 
     @ElementCollection
