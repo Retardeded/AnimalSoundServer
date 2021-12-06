@@ -75,12 +75,12 @@ public class CalculateSoundSimilarity {
         return (int) (numCrossing / sound.getNumOfGraphs());
     }
 
-    public static SoundsTimeCoefficients correlationParamsCoefficient(SoundTypeParameters typeSound, DataSoundParameters newSound)
+    public static SoundsTimeCoefficients correlationParamsCoefficient(SoundTypeParameters soundTypeParameters, DataSoundParameters newSound)
     {
-        double envelopeCoefficient = calculateCoefficient(newSound.signalEnvelope, typeSound.signalEnvelope,Math.min(newSound.signalEnvelope.size(),typeSound.signalEnvelope.size()));
-        double energyCoefficient = calculateCoefficient(newSound.rootMeanSquareEnergy, typeSound.rootMeanSquareEnergy,Math.min(newSound.rootMeanSquareEnergy.size(),typeSound.rootMeanSquareEnergy.size()));
+        double envelopeCoefficient = calculateCoefficient(newSound.signalEnvelope, soundTypeParameters.getSignalEnvelopeWeighted(),Math.min(newSound.signalEnvelope.size(),soundTypeParameters.signalEnvelopeCount.size()));
+        double energyCoefficient = calculateCoefficient(newSound.rootMeanSquareEnergy, soundTypeParameters.getRootMeanSquareEnergyWeighted(),Math.min(newSound.rootMeanSquareEnergy.size(),soundTypeParameters.rootMeanSquareEnergyCount.size()));
         var X = newSound.zeroCrossingDensity;
-        var Y = typeSound.zeroCrossingDensity;
+        var Y = soundTypeParameters.getZeroCrossingDensityWeighted();
         double zeroCrossingCoefficient = X < Y ? X/Y : Y/X;
         double coefficient = envelopeCoefficient * 0.4 + energyCoefficient * 0.4 + zeroCrossingCoefficient * 0.2;
 
