@@ -1,12 +1,12 @@
 package com.soundrecognition.model;
 
-public class SoundsFreqCoefficients {
+public class PowerSpectrumCoefficient {
 
     public double powerSpectrumCoefficient;
 
     public double mergedCoefficient;
 
-    public SoundsFreqCoefficients(double powerSpectrumCoefficient) {
+    public PowerSpectrumCoefficient(double powerSpectrumCoefficient) {
         this.powerSpectrumCoefficient = powerSpectrumCoefficient;
         this.mergedCoefficient = powerSpectrumCoefficient;
     }

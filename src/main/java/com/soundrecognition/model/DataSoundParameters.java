@@ -28,12 +28,17 @@ public class DataSoundParameters implements Serializable {
     @Column
     public List<Integer> rootMeanSquareEnergy;
 
+    @ElementCollection
+    @Column
+    public List<Integer> powerSpectrum;
+
     public Integer zeroCrossingDensity;
 
-    public DataSoundParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, Integer zeroCrossingDensity) {
+    public DataSoundParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, List<Integer> powerSpectrum, Integer zeroCrossingDensity) {
         this.typeName = type;
         this.signalEnvelope = signalEnvelope;
         this.rootMeanSquareEnergy = rootMeanSquareEnergy;
+        this.powerSpectrum = powerSpectrum;
         this.zeroCrossingDensity = zeroCrossingDensity;
     }
 

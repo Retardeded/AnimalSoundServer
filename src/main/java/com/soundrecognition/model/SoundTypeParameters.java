@@ -76,6 +76,31 @@ public class SoundTypeParameters implements Serializable {
     @Column
     public List<Integer> rootMeanSquareEnergyCount;
 
+    @ElementCollection
+    @Column
+    private List<Integer> powerSpectrum;
+
+    public List<Integer> getPowerSpectrumRaw() {
+        return powerSpectrum;
+    }
+
+    public List<Integer> getPowerSpectrumWeighted() {
+        var result = IntStream.range(0, powerSpectrum.size())
+                .map(i -> powerSpectrum.get(i) / powerSpectrumCount.get(i))
+                .boxed()
+                .collect(Collectors.toList());
+
+        return result;
+    }
+
+    public void setPowerSpectrum(List<Integer> powerSpectrum) {
+        this.powerSpectrum = powerSpectrum;
+    }
+
+    @ElementCollection
+    @Column
+    public List<Integer> powerSpectrumCount;
+
     private Integer zeroCrossingDensity;
 
     public Integer getZeroCrossingDensityWeighted() {
@@ -97,12 +122,14 @@ public class SoundTypeParameters implements Serializable {
 
     public Integer zeroCrossingDensityCount;
 
-    public SoundTypeParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, Integer zeroCrossingDensity) {
+    public SoundTypeParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, List<Integer> powerSpectrum, Integer zeroCrossingDensity) {
         this.typeName = type;
         this.signalEnvelope = signalEnvelope;
         this.signalEnvelopeCount = new ArrayList<Integer>(Collections.nCopies(signalEnvelope.size(), 1));
         this.rootMeanSquareEnergy = rootMeanSquareEnergy;
         this.rootMeanSquareEnergyCount = new ArrayList<Integer>(Collections.nCopies(rootMeanSquareEnergy.size(), 1));
+        this.powerSpectrum = powerSpectrum;
+        this.powerSpectrumCount = new ArrayList<Integer>(Collections.nCopies(powerSpectrum.size(), 1));
         this.zeroCrossingDensityCount = 1;
         this.zeroCrossingDensity = zeroCrossingDensity;
     }
@@ -112,6 +139,7 @@ public class SoundTypeParameters implements Serializable {
         return "DataSoundParameters{" +
                 "signalEnvelope=" + getSignalEnvelopeWeighted() +
                 ", rootMeanSquareEnergy=" + getRootMeanSquareEnergyWeighted() +
+                ", powerSpectrum=" + getPowerSpectrumWeighted() +
                 ", zeroCrossingDensity=" + zeroCrossingDensity +
                 '}';
     }

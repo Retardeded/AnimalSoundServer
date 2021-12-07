@@ -47,11 +47,6 @@ public class DataSound implements Comparator<DataPoint> {
     @Column
     private Long numOfGraphs;
 
-
-    public void setFreqDomainPoints(List<DataPoint> dataPoints) {
-        this.freqDomainPoints = dataPoints;
-    }
-
     //@JoinColumn()
     //@OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
     //private DataSoundParameters dataSoundParameters;
@@ -59,17 +54,10 @@ public class DataSound implements Comparator<DataPoint> {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private DataSoundParameters dataSoundParameters;
 
-    @ElementCollection
-    @Column
-    private List<DataPoint> freqDomainPoints;
-
     public void setTimeDomainPoints(List<DataPoint> dataPoints) {
         this.timeDomainPoints = dataPoints;
     }
 
-    public List<DataPoint> getFreqDomainPoints() {
-        return freqDomainPoints;
-    }
 
     public List<DataPoint> getTimeDomainPoints() {
         return timeDomainPoints;

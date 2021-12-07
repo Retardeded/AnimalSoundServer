@@ -3,7 +3,7 @@ package com.soundrecognition.controller;
 
 import com.soundrecognition.model.DataSound;
 import com.soundrecognition.model.SoundType;
-import com.soundrecognition.model.SoundsFreqCoefficients;
+import com.soundrecognition.model.PowerSpectrumCoefficient;
 import com.soundrecognition.model.SoundsTimeCoefficients;
 import com.soundrecognition.service.DataSoundService;
 import javassist.NotFoundException;
@@ -65,14 +65,14 @@ public class DataSoundController {
         return (dataSound);
     }
 
-    @PostMapping("/check")
+    @PostMapping("/checkTime")
     public List<Pair<SoundType, SoundsTimeCoefficients>> checkSound(@RequestBody DataSound dataSound) {
         var list = sounds.getMostSimilarSoundsTimeDomain(dataSound);
         return list;
     }
 
-    @PostMapping("/checkFreq")
-    public List<Pair<DataSound, SoundsFreqCoefficients>> checkSoundFrequencyDomain(@RequestBody DataSound dataSound) {
+    @PostMapping("/checkPowerSpectrum")
+    public List<Pair<SoundType, PowerSpectrumCoefficient>> checkSoundFrequencyDomain(@RequestBody DataSound dataSound) {
         var list = sounds.getMostSimilarSoundsFreqDomain(dataSound);
         return list;
     }

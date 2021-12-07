@@ -60,13 +60,11 @@ public class DataSoundService {
     private void cleanSoundTypeData(SoundType soundType) {
         for (var sound:soundType.getDataSounds())
         {
-            sound.setFreqDomainPoints(new ArrayList<>());
             sound.setTimeDomainPoints(new ArrayList<>());
         }
     }
 
     private void cleanSoundData(DataSound sound) {
-        sound.setFreqDomainPoints(new ArrayList<>());
         sound.setTimeDomainPoints(new ArrayList<>());
     }
 
@@ -74,7 +72,8 @@ public class DataSoundService {
         var zeroCrossingDensity = CalculateSoundSimilarity.zeroCrossingDensity(dataSound);
         var rootMeanSquareEnergy = CalculateSoundSimilarity.rootMeanSquareEnergy(dataSound);
         var signalEnvelope = CalculateSoundSimilarity.signalEnvelope(dataSound);
-        var parameters = new DataSoundParameters("", Arrays.asList(signalEnvelope), Arrays.asList(rootMeanSquareEnergy), zeroCrossingDensity);
+        var powerSpectrum = calculateFullSignalFrequencyDomain(dataSound);
+        var parameters = new DataSoundParameters("", Arrays.asList(signalEnvelope), Arrays.asList(rootMeanSquareEnergy), powerSpectrum, zeroCrossingDensity);
         return parameters;
     }
 
@@ -83,10 +82,10 @@ public class DataSoundService {
         if(dataSound.getTimeDomainPoints().size() == 0)
             return dataSound;
 
-        dataSound = calculateFullSignalFrequencyDomain(dataSound);
+        var powerSpectrum = calculateFullSignalFrequencyDomain(dataSound);
         DataSoundParameters newSoundParams = getDataSoundParameters(dataSound);
         dataSound.setDataSoundParameters(newSoundParams);
-        SoundTypeParameters soundTypeParameters = new SoundTypeParameters(dataSound.getType(), newSoundParams.signalEnvelope, newSoundParams.rootMeanSquareEnergy, newSoundParams.zeroCrossingDensity);
+        SoundTypeParameters soundTypeParameters = new SoundTypeParameters(dataSound.getType(), newSoundParams.signalEnvelope, newSoundParams.rootMeanSquareEnergy,powerSpectrum, newSoundParams.zeroCrossingDensity);
         dataSoundParametersRepository.save(newSoundParams);
         dataSoundRepository.save(dataSound);
         if(!dataSound.getType().equals("")) {
@@ -158,7 +157,7 @@ public class DataSoundService {
     }
 
 
-    private DataSound calculateFullSignalFrequencyDomain(DataSound dataSound) {
+    private ArrayList<Integer> calculateFullSignalFrequencyDomain(DataSound dataSound) {
         int n = Math.toIntExact(dataSound.getPointsInGraphs());
         int m = Math.toIntExact(dataSound.getNumOfGraphs());
         var audioData = dataSound.getTimeDomainPoints();
@@ -178,33 +177,34 @@ public class DataSoundService {
             }
             //System.out.println(dataFreqDomain.size());
         }
-        for (int i = 0; i < n/2; i++) {
-            dataFreqDomain.add(new DataPoint(i, dataAmplitudeFullSignal[i]/m));
+        var powerSpectrumInt = new ArrayList<Integer>();
+        for(Double d : dataAmplitudeFullSignal) {
+            powerSpectrumInt.add(d.intValue());
         }
-        dataSound.setFreqDomainPoints(dataFreqDomain);
-        return dataSound;
+
+        return powerSpectrumInt;
     }
 
-    public List<Pair<DataSound, SoundsFreqCoefficients>> getMostSimilarSoundsFreqDomain(DataSound newSound) {
-        var sounds = dataSoundRepository.findAll();
-        var newSoundWithFreq = calculateFullSignalFrequencyDomain(newSound);
-        var newSoundFreqValues = getFreqValues(newSoundWithFreq);
+    public List<Pair<SoundType, PowerSpectrumCoefficient>> getMostSimilarSoundsFreqDomain(DataSound newSound) {
 
-        ArrayList<Pair<DataSound, SoundsFreqCoefficients>> mostSimilar = new ArrayList<>();
+        var typesParams = soundTypeRepository.findAll();
+        var newSoundParam = getDataSoundParameters(newSound);
+        ArrayList<Pair<SoundType, PowerSpectrumCoefficient>> mostSimilar = new ArrayList<>();
 
 
-        for (int i =0; i < sounds.size(); i++) {
-            var freqValues = getFreqValues(sounds.get(i));
-            System.out.println(freqValues);
-            var cor = CalculateSoundSimilarity.calculateCoefficient(newSoundFreqValues, freqValues, Math.min(newSoundFreqValues.size(),freqValues.size()));
+        for (int i =0; i < typesParams.size(); i++) {
+            var params = typesParams.get(i).soundTypeParameters;
+            System.out.println(params);
+            var cor = CalculateSoundSimilarity.correlationPowerSpectrumCoefficient(params, newSoundParam);
             System.out.println(cor);
             //parameters.setFreqDomainPoints(new ArrayList<>());
-            mostSimilar.add(Pair.of(sounds.get(i), new SoundsFreqCoefficients(cor)));
+            cleanSoundTypeData(typesParams.get(i));
+            mostSimilar.add(Pair.of(typesParams.get(i), cor));
         }
 
-        Collections.sort(mostSimilar, new Comparator<Pair<DataSound, SoundsFreqCoefficients>>() {
+        Collections.sort(mostSimilar, new Comparator<Pair<SoundType, PowerSpectrumCoefficient>>() {
             @Override
-            public int compare(final Pair<DataSound, SoundsFreqCoefficients> o1, final Pair<DataSound, SoundsFreqCoefficients> o2) {
+            public int compare(final Pair<SoundType, PowerSpectrumCoefficient> o1, final Pair<SoundType, PowerSpectrumCoefficient> o2) {
                 if (o1.getSecond().mergedCoefficient > o2.getSecond().mergedCoefficient) {
                     return -1;
                 } else if (o1.getSecond().mergedCoefficient == (o2.getSecond().mergedCoefficient)) {
@@ -215,18 +215,13 @@ public class DataSoundService {
                 }
             }
         });
-        return mostSimilar.subList(0,Math.min(mostSimilar.size(),3));
-    }
-
-
-    private List<Integer> getFreqValues(DataSound newSoundWithFreq) {
-        var freqDomain = newSoundWithFreq.getFreqDomainPoints();
-        int n = Math.toIntExact(freqDomain.size());
-        Integer[] freqValues = new Integer[n];
-        for(int i = 0; i < n; i++) {
-            freqValues[i] = (int) freqDomain.get(i).getY();
+        var topList = mostSimilar.subList(0,Math.min(mostSimilar.size(), topListSize));
+        for (var listItem:topList
+        ) {
+            var soundType = listItem.getFirst();
+            makeSoundTypeRightForSendingThroughNetwork(soundType);
         }
-        return Arrays.asList(freqValues);
+        return mostSimilar.subList(0,Math.min(mostSimilar.size(), topListSize));
     }
 
     public List<Pair<SoundType, SoundsTimeCoefficients>> getMostSimilarSoundsTimeDomain(DataSound newSound) {
@@ -241,7 +236,7 @@ public class DataSoundService {
         for (int i =0; i < typesParams.size(); i++) {
             var params = typesParams.get(i).soundTypeParameters;
             System.out.println(params);
-            var cor = CalculateSoundSimilarity.correlationParamsCoefficient(params, newSoundParam);
+            var cor = CalculateSoundSimilarity.correlationTimeParamsCoefficient(params, newSoundParam);
             System.out.println(cor);
             //parameters.setFreqDomainPoints(new ArrayList<>());
             cleanSoundTypeData(typesParams.get(i));
@@ -276,6 +271,7 @@ public class DataSoundService {
         typeParams.setRootMeanSquareEnergy(typeParams.getRootMeanSquareEnergyWeighted());
         typeParams.setSignalEnvelope(typeParams.getSignalEnvelopeWeighted());
         typeParams.setZeroCrossingDensity(typeParams.getZeroCrossingDensityWeighted());
+        typeParams.setPowerSpectrum(typeParams.getPowerSpectrumWeighted());
     }
 
     public Optional<DataSound> getDataSound(Integer id) throws NotFoundException {

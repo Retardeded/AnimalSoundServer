@@ -75,7 +75,7 @@ public class CalculateSoundSimilarity {
         return (int) (numCrossing / sound.getNumOfGraphs());
     }
 
-    public static SoundsTimeCoefficients correlationParamsCoefficient(SoundTypeParameters soundTypeParameters, DataSoundParameters newSound)
+    public static SoundsTimeCoefficients correlationTimeParamsCoefficient(SoundTypeParameters soundTypeParameters, DataSoundParameters newSound)
     {
         double envelopeCoefficient = calculateCoefficient(newSound.signalEnvelope, soundTypeParameters.getSignalEnvelopeWeighted(),Math.min(newSound.signalEnvelope.size(),soundTypeParameters.signalEnvelopeCount.size()));
         double energyCoefficient = calculateCoefficient(newSound.rootMeanSquareEnergy, soundTypeParameters.getRootMeanSquareEnergyWeighted(),Math.min(newSound.rootMeanSquareEnergy.size(),soundTypeParameters.rootMeanSquareEnergyCount.size()));
@@ -86,6 +86,15 @@ public class CalculateSoundSimilarity {
 
         return new SoundsTimeCoefficients(envelopeCoefficient, energyCoefficient, zeroCrossingCoefficient, coefficient);
     }
+
+    public static PowerSpectrumCoefficient correlationPowerSpectrumCoefficient(SoundTypeParameters soundTypeParameters, DataSoundParameters newSound)
+    {
+        double powerSpectrumCoefficient = calculateCoefficient(newSound.powerSpectrum, soundTypeParameters.getPowerSpectrumWeighted(),Math.min(newSound.powerSpectrum.size(),soundTypeParameters.powerSpectrumCount.size()));
+        double coefficient = powerSpectrumCoefficient;
+
+        return new PowerSpectrumCoefficient(coefficient);
+    }
+
 
     public static double calculateCoefficient(List<Integer> soundTypeData,List<Integer> newSoundData, int n) {
         double sum_X = 0, sum_Y = 0, sum_XY = 0;
