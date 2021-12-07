@@ -21,6 +21,9 @@ public class DataSoundService {
     private final DataSoundParametersRepository dataSoundParametersRepository;
     private final SoundTypeParametersRepository soundTypeParametersRepository;
     final int topListSize = 3;
+    final int minSignalEnvelope = 200;
+    final int minRootMeanSquareEnergy = 90;
+    final String noiseTitle = "It's background noise";
 
     DataSoundService(DataSoundRepository dataSoundRepository, SoundTypeRepository soundTypeRepository, DataSoundParametersRepository dataSoundParametersRepository, SoundTypeParametersRepository soundTypeParametersRepository) {
         this.dataSoundRepository = dataSoundRepository;
@@ -75,7 +78,11 @@ public class DataSoundService {
         return parameters;
     }
 
-    public DataSound save(DataSound dataSound) {
+    public DataSound save(DataSound dataSoundRaw) {
+        DataSound dataSound = cutSoundNoise(dataSoundRaw);
+        if(dataSound.getTimeDomainPoints().size() == 0)
+            return dataSound;
+
         dataSound = calculateFullSignalFrequencyDomain(dataSound);
         DataSoundParameters newSoundParams = getDataSoundParameters(dataSound);
         dataSound.setDataSoundParameters(newSoundParams);
@@ -86,7 +93,6 @@ public class DataSoundService {
             var soundTypeOptional = soundTypeRepository.findByName(dataSound.getType());
             if(soundTypeOptional.isPresent()) {
                 var soundType = soundTypeOptional.get();
-
                 var paramsOptional = soundTypeParametersRepository.findByTypeName(soundType.getName());
                 if(paramsOptional.isPresent()) {
                     var soundTypeParametersPresent = paramsOptional.get();
@@ -113,6 +119,42 @@ public class DataSoundService {
 
 
         return dataSound;
+    }
+
+    private DataSound cutSoundNoise(DataSound dataSoundRaw) {
+        var rootMeanSquareEnergy = CalculateSoundSimilarity.rootMeanSquareEnergy(dataSoundRaw);
+        int minIndex = -1;
+        int maxIndex = -1;
+
+        System.out.println("Initial:" + dataSoundRaw.getNumOfGraphs());
+        System.out.println("Initial:" + dataSoundRaw.getTimeDomainPoints().size());
+
+        for(int i = 0; i < rootMeanSquareEnergy.length; i++) {
+            if(rootMeanSquareEnergy[i] > minRootMeanSquareEnergy && minIndex == -1) {
+                minIndex = i;
+            }
+            if(minIndex != -1 && rootMeanSquareEnergy[i] < minRootMeanSquareEnergy) {
+                maxIndex = i;
+                break;
+            }
+
+        }
+
+        if(maxIndex == -1) maxIndex = rootMeanSquareEnergy.length;
+
+        if(maxIndex == -1) {
+            cleanSoundData(dataSoundRaw);
+            dataSoundRaw.setTitle(noiseTitle);
+            return dataSoundRaw;
+        }
+
+        dataSoundRaw.setNumOfGraphs((long) (maxIndex-minIndex));
+        int pointsInGraphs = Math.toIntExact(dataSoundRaw.getPointsInGraphs());
+        dataSoundRaw.setTimeDomainPoints(dataSoundRaw.getTimeDomainPoints().subList(minIndex*pointsInGraphs, maxIndex*pointsInGraphs));
+
+        System.out.println("After:" + dataSoundRaw.getNumOfGraphs());
+        System.out.println("After:" + dataSoundRaw.getTimeDomainPoints().size());
+        return dataSoundRaw;
     }
 
 
