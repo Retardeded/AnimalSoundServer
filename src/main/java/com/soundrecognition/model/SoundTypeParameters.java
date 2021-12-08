@@ -155,28 +155,29 @@ public class SoundTypeParameters implements Serializable {
 
     @ElementCollection
     @Column
-    private List<Integer> spectralRolloffPoints;
+    private List<Double> spectralRolloffPoints;
 
-    public List<Integer> getSpectralRolloffPointsRaw() {
+    public List<Double> getSpectralRollOffPointsRaw() {
         return spectralRolloffPoints;
     }
 
-    public List<Integer> getSpectralRolloffPointsWeighted() {
-        var result = IntStream.range(0, spectralRolloffPoints.size())
-                .map(i -> spectralRolloffPoints.get(i) / spectralRolloffPointsCount.get(i))
-                .boxed()
-                .collect(Collectors.toList());
+    public List<Double> getSpectralRolloffPointsWeighted() {
 
-        return result;
+        var weighted = new ArrayList<Double>();
+        for (int i = 0; i< spectralRollOffPointsCount.size(); i++) {
+            weighted.add(spectralRolloffPoints.get(i) / spectralRollOffPointsCount.get(i));
+        }
+
+        return weighted;
     }
 
-    public void setSpectralRolloffPoints(List<Integer> spectralRolloffPoints) {
+    public void setSpectralRolloffPoints(List<Double> spectralRolloffPoints) {
         this.spectralRolloffPoints = spectralRolloffPoints;
     }
 
     @ElementCollection
     @Column
-    public List<Integer> spectralRolloffPointsCount;
+    public List<Integer> spectralRollOffPointsCount;
 
 
 
@@ -201,7 +202,7 @@ public class SoundTypeParameters implements Serializable {
 
     public Integer zeroCrossingDensityCount;
 
-    public SoundTypeParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, Integer zeroCrossingDensity, List<Integer> powerSpectrum, List<Integer> spectralCentroids, List<Integer> spectralFluxes, List<Integer> spectralRolloffPoints) {
+    public SoundTypeParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, Integer zeroCrossingDensity, List<Integer> powerSpectrum, List<Integer> spectralCentroids, List<Integer> spectralFluxes, List<Double> spectralRolloffPoints) {
         this.typeName = type;
         this.signalEnvelope = signalEnvelope;
         this.signalEnvelopeCount = new ArrayList<Integer>(Collections.nCopies(signalEnvelope.size(), 1));
@@ -214,9 +215,9 @@ public class SoundTypeParameters implements Serializable {
         this.spectralCentroids = spectralCentroids;
         this.spectralCentroidsCount = new ArrayList<Integer>(Collections.nCopies(spectralCentroids.size(), 1));
         this.spectralFluxes = spectralFluxes;
-        this.spectralCentroidsCount = new ArrayList<Integer>(Collections.nCopies(spectralCentroids.size(), 1));
+        this.spectralFluxesCount = new ArrayList<Integer>(Collections.nCopies(spectralFluxes.size(), 1));
         this.spectralRolloffPoints = spectralRolloffPoints;
-        this.spectralRolloffPointsCount = new ArrayList<Integer>(Collections.nCopies(spectralRolloffPoints.size(), 1));
+        this.spectralRollOffPointsCount = new ArrayList<Integer>(Collections.nCopies(spectralRolloffPoints.size(), 1));
 
     }
 
@@ -233,9 +234,7 @@ public class SoundTypeParameters implements Serializable {
     public void calculateNewParamAverageAdd(List<Integer> parametersPresent, List<Integer> parametersNew, List<Integer> parametersCount) {
         int minSize = Math.min(parametersNew.size(), parametersPresent.size());
         for(int i = 0; i < minSize; i++) {
-            //int n = parametersCount.get(i);
-            //parametersPresent.set(i,(int) (parametersPresent.get(i) * (n / (n + 1)) + parametersNew.get(i) / (n + 1)));
-            parametersPresent.set(i,(int) (parametersPresent.get(i) + parametersNew.get(i)));
+            parametersPresent.set(i, (parametersPresent.get(i) + parametersNew.get(i)));
             parametersCount.set(i, parametersCount.get(i)+1);
         }
         if(minSize == parametersPresent.size()) {
@@ -247,18 +246,45 @@ public class SoundTypeParameters implements Serializable {
         }
     }
 
+    public void calculateNewParamAverageAddDouble(List<Double> parametersPresent, List<Double> parametersNew, List<Integer> parametersCount) {
+        int minSize = Math.min(parametersNew.size(), parametersPresent.size());
+        for(int i = 0; i < minSize; i++) {
+            parametersPresent.set(i, (parametersPresent.get(i) + parametersNew.get(i)));
+            parametersCount.set(i, parametersCount.get(i)+1);
+        }
+        if(minSize == parametersPresent.size()) {
+            int maxSize = Math.max(parametersNew.size(), parametersPresent.size());
+            for(int i = minSize; i < maxSize;i++) {
+                parametersPresent.add(parametersNew.get(i));
+                parametersCount.add(1);
+            }
+        }
+    }
+
+
     public void calculateNewParamAverageDelete(List<Integer> parametersType, List<Integer> parametersSound, List<Integer> parametersCount) {
         int minSize = Math.min(parametersType.size(), parametersSound.size());
         for(int i = 0; i < minSize; i++) {
-            //parametersType.set(i,(int) ((parametersType.get(i) * n  - parametersSound.get(i) ) / (n + 1)));
-            parametersType.set(i,(int) ((parametersType.get(i)  - parametersSound.get(i) )));
+            parametersType.set(i, ((parametersType.get(i)  - parametersSound.get(i) )));
             parametersCount.set(i, parametersCount.get(i)-1);
         }
 
         while(parametersCount.get(parametersType.size()-1) == 0) {
             parametersType.remove(parametersCount.size()-1);
             parametersCount.remove(parametersCount.size()-1);
-            //parametersType.set(i, (parametersType.get(i) * n  - parametersSound.get(i) ) / (n + 1));
+        }
+    }
+
+    public void calculateNewParamAverageDeleteDouble(List<Double> parametersType, List<Double> parametersSound, List<Integer> parametersCount) {
+        int minSize = Math.min(parametersType.size(), parametersSound.size());
+        for(int i = 0; i < minSize; i++) {
+            parametersType.set(i, ((parametersType.get(i)  - parametersSound.get(i) )));
+            parametersCount.set(i, parametersCount.get(i)-1);
+        }
+
+        while(parametersCount.get(parametersType.size()-1) == 0) {
+            parametersType.remove(parametersCount.size()-1);
+            parametersCount.remove(parametersCount.size()-1);
         }
     }
 

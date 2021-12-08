@@ -74,7 +74,7 @@ public class DataSoundController {
         return list;
     }
 
-    @PostMapping("/checkFreq")
+    @PostMapping("/checkFrequency")
     public List<Pair<SoundType, SoundsFreqCoefficients>> checkSoundFrequencyDomain(@RequestBody DataSound dataSound) {
         var list = sounds.getMostSimilarSoundsFreqDomain(dataSound);
         return list;

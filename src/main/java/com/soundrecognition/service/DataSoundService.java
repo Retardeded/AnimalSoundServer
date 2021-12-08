@@ -1,6 +1,5 @@
 package com.soundrecognition.service;
 ;
-import ca.uol.aig.fftpack.RealDoubleFFT;
 import com.soundrecognition.model.*;
 import com.soundrecognition.repository.DataSoundParametersRepository;
 import com.soundrecognition.repository.DataSoundRepository;
@@ -68,18 +67,6 @@ public class DataSoundService {
         sound.setTimeDomainPoints(new ArrayList<>());
     }
 
-    /*
-    private DataSoundParameters getDataSoundParameters(DataSound dataSound) {
-        var zeroCrossingDensity = CalculateSoundSimilarity.zeroCrossingDensity(dataSound);
-        var rootMeanSquareEnergy = CalculateSoundSimilarity.rootMeanSquareEnergy(dataSound);
-        var signalEnvelope = CalculateSoundSimilarity.signalEnvelope(dataSound);
-        var powerSpectrum = calculateFullSignalFrequencyDomain(dataSound);
-        var parameters = new DataSoundParameters("", Arrays.asList(signalEnvelope), Arrays.asList(rootMeanSquareEnergy), powerSpectrum, zeroCrossingDensity);
-        return parameters;
-    }
-
-     */
-
     private DataSoundParameters getDataSoundParameters(DataSound dataSound, String mode) {
         var parameters = new DataSoundParameters();
         parameters.typeName = "";
@@ -92,16 +79,17 @@ public class DataSoundService {
             parameters.signalEnvelope = Arrays.asList(signalEnvelope);
         }
         if(mode.charAt(1) == '1'|| mode.charAt(2) == '1') {
-            var powerSpectres = calculatePowerSpectrums(dataSound);
+            var powerSpectres = CalculateSoundSimilarity.calculatePowerSpectres(dataSound);
+
             int n = Math.toIntExact(dataSound.getPointsInGraphs());
             int m = Math.toIntExact(dataSound.getNumOfGraphs());
            if(mode.charAt(1) == '1') {
-               parameters.powerSpectrum = calculateFullSignalFrequencyDomain(powerSpectres, n, m);
+               parameters.powerSpectrum = CalculateSoundSimilarity.calculateFullSignalFrequencyDomain(powerSpectres, n, m);
            }
             if(mode.charAt(2) == '1') {
                parameters.spectralCentroids = CalculateSoundSimilarity.spectralCentroids(powerSpectres, n, m);
                parameters.spectralFluxes = CalculateSoundSimilarity.spectralFluxes(powerSpectres, n, m);
-               parameters.spectralRollOffPoints = CalculateSoundSimilarity.spectralRolloffPoints(powerSpectres, n, m);
+               parameters.spectralRollOffPoints = CalculateSoundSimilarity.spectralRollOffPoints(powerSpectres, n, m);
            }
         }
 
@@ -131,6 +119,10 @@ public class DataSoundService {
                     soundTypeParametersPresent.UpdateZeroCrossingDensity(currentZeroCrossingDensity, soundTypeParameters.getZeroCrossingDensity(), true);
                     soundTypeParametersPresent.calculateNewParamAverageAdd(soundTypeParametersPresent.getSignalEnvelopeRaw(), soundTypeParameters.getSignalEnvelopeRaw(), soundTypeParametersPresent.signalEnvelopeCount);
                     soundTypeParametersPresent.calculateNewParamAverageAdd(soundTypeParametersPresent.getRootMeanSquareEnergyRaw(), soundTypeParameters.getRootMeanSquareEnergyRaw(), soundTypeParametersPresent.rootMeanSquareEnergyCount);
+
+                    soundTypeParametersPresent.calculateNewParamAverageAdd(soundTypeParametersPresent.getSpectralCentroidsRaw(), soundTypeParameters.getSpectralCentroidsRaw(), soundTypeParametersPresent.spectralCentroidsCount);
+                    soundTypeParametersPresent.calculateNewParamAverageAdd(soundTypeParametersPresent.getSpectralFluxesRaw(), soundTypeParameters.getSpectralFluxesRaw(), soundTypeParametersPresent.spectralFluxesCount);
+                    soundTypeParametersPresent.calculateNewParamAverageAddDouble(soundTypeParametersPresent.getSpectralRollOffPointsRaw(), soundTypeParameters.getSpectralRollOffPointsRaw(), soundTypeParametersPresent.spectralRollOffPointsCount);
 
                     var list = soundType.getDataSounds();
                     cleanSoundData(dataSound);
@@ -188,45 +180,6 @@ public class DataSoundService {
         return dataSoundRaw;
     }
 
-    private List<double[]> calculatePowerSpectrums(DataSound dataSound) {
-        int n = Math.toIntExact(dataSound.getPointsInGraphs());
-        int m = Math.toIntExact(dataSound.getNumOfGraphs());
-        var audioData = dataSound.getTimeDomainPoints();
-        var powerSpectrumList = new ArrayList<double[]>();
-        var powerSpectrum = new double[n/2];
-        //var magnitudeSpectrum = new double[n/2];
-        var transformer = new RealDoubleFFT(n);
-        double[] toTransform = new double[n];
-        for(int j = 0; j < m; j++) {
-            for (int i = 0; i < n; i++) {
-                toTransform[i] = audioData.get(i+j*n).getY() / n;
-            }
-            transformer.ft(toTransform);
-            for (int i = 0; i < n/2; i++) {
-                powerSpectrum[i] = toTransform[i*2+1] * toTransform[i*2+1] + toTransform[i*2] * toTransform[i*2];
-            }
-            powerSpectrumList.add(powerSpectrum);
-        }
-
-        return powerSpectrumList;
-    }
-
-    private ArrayList<Integer> calculateFullSignalFrequencyDomain(List<double[]> powerSpectrums, int n, int m) {
-        var dataAmplitudeFullSignal = new double[n/2];
-        for(int j = 0; j < m; j++) {
-            for (int i = 0; i < n/2; i++) {
-                dataAmplitudeFullSignal[i] += powerSpectrums.get(j)[i];
-                //dataAmplitudeFullSignal[i] += toTransform[i*2+1] * toTransform[i*2+1] + toTransform[i*2] * toTransform[i*2];
-                //dataFreqDomain.add(new DataPoint(i, toTransform[i*2+1] * toTransform[i*2+1] + toTransform[i*2] * toTransform[i*2]));
-            }
-        }
-        var powerSpectrumInt = new ArrayList<Integer>();
-        for(Double d : dataAmplitudeFullSignal) {
-            powerSpectrumInt.add(d.intValue()/m);
-        }
-
-        return powerSpectrumInt;
-    }
 
     public List<Pair<SoundType, SoundsFreqCoefficients>> getMostSimilarSoundsFreqDomain(DataSound newSound) {
         String mode = "001";
@@ -278,7 +231,7 @@ public class DataSoundService {
                 cor = CalculateSoundSimilarity.correlationPowerSpectrumCoefficient(params, newSoundParam);
             }
             if(mode.charAt(2) == '1') {
-                cor = CalculateSoundSimilarity.correlationPowerSpectrumCoefficient(params, newSoundParam);
+                cor = CalculateSoundSimilarity.correlationFreqParamsCoefficient(params, newSoundParam);
             }
             cleanSoundTypeData(typesParams.get(i));
             mostSimilar.add(Pair.of(typesParams.get(i), cor));
@@ -325,7 +278,7 @@ public class DataSoundService {
         typeParams.setPowerSpectrum(typeParams.getPowerSpectrumWeighted());
         typeParams.setSpectralCentroids(typeParams.getSpectralCentroidsWeighted());
         typeParams.setSpectralFluxes(typeParams.getSpectralFluxesWeighted());
-        typeParams.setSpectralRolloffPoints(typeParams.getSpectralRolloffPointsRaw());
+        typeParams.setSpectralRolloffPoints(typeParams.getSpectralRollOffPointsRaw());
     }
 
     public Optional<DataSound> getDataSound(Integer id) throws NotFoundException {
@@ -354,7 +307,7 @@ public class DataSoundService {
 
                 paramsType.calculateNewParamAverageDelete(paramsType.getSpectralCentroidsRaw(), soundParams.spectralCentroids, paramsType.spectralCentroidsCount);
                 paramsType.calculateNewParamAverageDelete(paramsType.getSpectralFluxesRaw(), soundParams.spectralFluxes, paramsType.spectralFluxesCount);
-                paramsType.calculateNewParamAverageDelete(paramsType.getSpectralRolloffPointsRaw(), soundParams.spectralRollOffPoints, paramsType.spectralRolloffPointsCount);
+                paramsType.calculateNewParamAverageDeleteDouble(paramsType.getSpectralRollOffPointsRaw(), soundParams.spectralRollOffPoints, paramsType.spectralRollOffPointsCount);
 
                 sounds.remove(dataSound);
                soundTypeRepository.save(soundType);
@@ -369,21 +322,6 @@ public class DataSoundService {
             dataSoundRepository.delete(dataSound);
         }
         //dataSoundParametersRepository.delete(dataSound.getDataSoundParameters());
-    }
-
-    private ArrayList<DataGraph> loadDataSound(List<DataPoint> soundData, Integer pointsInGraphs) {
-        var dataGraphs = new ArrayList<DataGraph>();
-        var numberOfGraphs = (soundData.size() / pointsInGraphs-1);
-        for (int i = 0; i < numberOfGraphs; i++) {
-            var graph = new DataGraph(
-                    soundData.subList(
-                            ((i * pointsInGraphs)),
-                            ((i + 1) * pointsInGraphs)
-                    )
-            );
-            dataGraphs.add(graph);
-        }
-        return dataGraphs;
     }
 
 }

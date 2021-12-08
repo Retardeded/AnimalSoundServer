@@ -42,7 +42,7 @@ public class DataSoundParameters implements Serializable {
 
     @ElementCollection
     @Column
-    public List<Integer> spectralRollOffPoints;
+    public List<Double> spectralRollOffPoints;
 
     public Integer zeroCrossingDensity;
 

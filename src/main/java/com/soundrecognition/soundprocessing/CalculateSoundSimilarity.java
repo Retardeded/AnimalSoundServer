@@ -1,5 +1,6 @@
 package com.soundrecognition.soundprocessing;
 
+import ca.uol.aig.fftpack.RealDoubleFFT;
 import com.soundrecognition.model.*;
 
 import java.util.ArrayList;
@@ -76,34 +77,82 @@ public class CalculateSoundSimilarity {
         return (int) (numCrossing / sound.getNumOfGraphs());
     }
 
-    public static ArrayList<Integer> spectralCentroids(List<double[]> powerSpectrums, int n, int m) {
+    public static List<double[]> calculatePowerSpectres(DataSound dataSound) {
+        int n = Math.toIntExact(dataSound.getPointsInGraphs());
+        int m = Math.toIntExact(dataSound.getNumOfGraphs());
+        var audioData = dataSound.getTimeDomainPoints();
+        var powerSpectres = new ArrayList<double[]>();
+        //var magnitudeSpectrum = new double[n/2];
+        var transformer = new RealDoubleFFT(n);
+        double[] toTransform = new double[n];
+        for(int j = 0; j < m; j++) {
+            var powerSpectrum = new double[n/2];
+            for (int i = 0; i < n; i++) {
+                toTransform[i] = audioData.get(i+j*n).getY() / n;
+            }
+            transformer.ft(toTransform);
+            for (int i = 0; i < n/2; i++) {
+                powerSpectrum[i] = toTransform[i*2+1] * toTransform[i*2+1] + toTransform[i*2] * toTransform[i*2];
+            }
+
+            powerSpectres.add(powerSpectrum);
+
+        }
+
+        return powerSpectres;
+    }
+
+    public static ArrayList<Integer> calculateFullSignalFrequencyDomain(List<double[]> powerSpectres, int n, int m) {
+        var dataAmplitudeFullSignal = new double[n/2];
+
+        for(int j = 0; j < m; j++) {
+
+
+            for (int i = 0; i < n/2; i++) {
+                dataAmplitudeFullSignal[i] += powerSpectres.get(j)[i];
+                //dataAmplitudeFullSignal[i] += toTransform[i*2+1] * toTransform[i*2+1] + toTransform[i*2] * toTransform[i*2];
+                //dataFreqDomain.add(new DataPoint(i, toTransform[i*2+1] * toTransform[i*2+1] + toTransform[i*2] * toTransform[i*2]));
+            }
+        }
+        var powerSpectrumInt = new ArrayList<Integer>();
+        for(Double d : dataAmplitudeFullSignal) {
+            powerSpectrumInt.add(d.intValue()/m);
+        }
+
+        return powerSpectrumInt;
+    }
+
+    public static ArrayList<Integer> spectralCentroids(List<double[]> powerSpectres, int n, int m) {
         var spectralCentroids = new double[m];
         for(int j = 0; j < m; j++) {
             double total = 0.0;
             double weighted_total = 0.0;
-            for (int bin = 0; bin < powerSpectrums.get(j).length; bin++)
+            for (int bin = 0; bin < powerSpectres.get(j).length; bin++)
             {
-                weighted_total += bin * powerSpectrums.get(j)[bin];
-                total += powerSpectrums.get(j)[bin];
+                weighted_total += bin * powerSpectres.get(j)[bin];
+                total += powerSpectres.get(j)[bin];
                 //dataFreqDomain.add(new DataPoint(i, toTransform[i*2+1] * toTransform[i*2+1] + toTransform[i*2] * toTransform[i*2]));
             }
+            System.out.println("total:" + total);
+            System.out.println("weighted:" + total);
             spectralCentroids[j] = weighted_total / total;
         }
         var spectralCentroidsInt = new ArrayList<Integer>();
         for(Double d : spectralCentroids) {
             spectralCentroidsInt.add(d.intValue());
+            System.out.println("centroid:" + d.intValue());
         }
         return spectralCentroidsInt;
     }
 
-    public static ArrayList<Integer> spectralFluxes(List<double[]> powerSpectrums, int n, int m) {
+    public static ArrayList<Integer> spectralFluxes(List<double[]> powerSpectres, int n, int m) {
         var spectralFluxes = new double[m];
         for(int j = 1; j < m; j++) {
             double sum = 0.0;
-            for (int bin = 0; bin < powerSpectrums.get(j).length; bin++)
+            for (int bin = 0; bin < powerSpectres.get(j).length; bin++)
             {
-                double difference = Math.sqrt(powerSpectrums.get(j)[bin])
-                        - Math.sqrt(powerSpectrums.get(j-1)[bin]);
+                double difference = Math.sqrt(powerSpectres.get(j)[bin])
+                        - Math.sqrt(powerSpectres.get(j-1)[bin]);
                 double differences_squared = difference * difference;
                 sum += differences_squared;
             }
@@ -116,31 +165,31 @@ public class CalculateSoundSimilarity {
         return spectralFluxesInt;
     }
 
-    public static ArrayList<Integer> spectralRolloffPoints(List<double[]> powerSpectrums, int n, int m) {
-        var spectralCentroids = new double[m];
+    public static ArrayList<Double> spectralRollOffPoints(List<double[]> powerSpectres, int n, int m) {
+        var spectralRollOffPoints = new double[m];
         double cutoff = 0.85;
 
         for(int j = 0; j < m; j++) {
             double total = 0.0;
-            for (int bin = 0; bin < powerSpectrums.get(j).length; bin++)
-                total += powerSpectrums.get(j)[bin];
+            for (int bin = 0; bin < powerSpectres.get(j).length; bin++)
+                total += powerSpectres.get(j)[bin];
             double threshold = total * cutoff;
             total = 0.0;
             int point = 0;
-            for (int bin = 0; bin < powerSpectrums.get(j).length; bin++) {
-                total += powerSpectrums.get(j)[bin];
+            for (int bin = 0; bin < powerSpectres.get(j).length; bin++) {
+                total += powerSpectres.get(j)[bin];
                 if (total >= threshold) {
                     point = bin;
-                    bin = powerSpectrums.get(j).length;
+                    bin = powerSpectres.get(j).length;
                 }
             }
-            spectralCentroids[j] =  (double) point /(double) powerSpectrums.get(j).length;
+            spectralRollOffPoints[j] =  (double) point /(double) powerSpectres.get(j).length;
         }
-        var spectralCentroidsInt = new ArrayList<Integer>();
-        for(Double d : spectralCentroids) {
-            spectralCentroidsInt.add(d.intValue());
+        var spectralCentroidsList = new ArrayList<Double>();
+        for(Double d : spectralRollOffPoints) {
+            spectralCentroidsList.add(d);
         }
-        return spectralCentroidsInt;
+        return spectralCentroidsList;
     }
 
     public static SoundsTimeCoefficients correlationTimeParamsCoefficient(SoundTypeParameters soundTypeParameters, DataSoundParameters newSound)
@@ -166,9 +215,38 @@ public class CalculateSoundSimilarity {
     {
         double centroidsCoefficient = calculateCoefficient(newSound.spectralCentroids, soundTypeParameters.getSpectralCentroidsWeighted(),Math.min(newSound.spectralCentroids.size(),soundTypeParameters.spectralCentroidsCount.size()));
         double fluxesCoefficient = calculateCoefficient(newSound.spectralFluxes, soundTypeParameters.getSpectralFluxesRaw(),Math.min(newSound.spectralFluxes.size(),soundTypeParameters.spectralFluxesCount.size()));
-        double rollOffCoeefficient = calculateCoefficient(newSound.spectralRollOffPoints, soundTypeParameters.getSpectralRolloffPointsRaw(),Math.min(newSound.spectralRollOffPoints.size(),soundTypeParameters.spectralRolloffPointsCount.size()));
+        double rollOffCoefficient = calculateCoefficientDouble(newSound.spectralRollOffPoints, soundTypeParameters.getSpectralRollOffPointsRaw(),Math.min(newSound.spectralRollOffPoints.size(),soundTypeParameters.spectralRollOffPointsCount.size()));
 
-        return new SoundsFreqCoefficients(centroidsCoefficient, fluxesCoefficient , rollOffCoeefficient);
+        return new SoundsFreqCoefficients(centroidsCoefficient, fluxesCoefficient , rollOffCoefficient);
+    }
+
+    public static double calculateCoefficientDouble(List<Double> soundTypeData,List<Double> newSoundData, int n) {
+        double sum_X = 0, sum_Y = 0, sum_XY = 0;
+        double squareSum_X = 0, squareSum_Y = 0;
+
+        for (int i = 0; i < n; i++)
+        {
+            // sum of elements of array X.
+            double X = newSoundData.get(i);
+            double Y = soundTypeData.get(i);
+            sum_X = sum_X + X;
+
+            // sum of elements of array Y.
+            sum_Y = sum_Y + Y;
+
+            // sum of X[i] * Y[i].
+            sum_XY = sum_XY + X * Y;
+
+            // sum of square of array elements.
+            squareSum_X = squareSum_X + X * X;
+            squareSum_Y = squareSum_Y + Y * Y;
+        }
+
+        // use formula for calculating correlation coefficient.
+        double corr = (n * sum_XY - sum_X * sum_Y)
+                / Math.sqrt((n * squareSum_X - sum_X * sum_X)
+                * (n * squareSum_Y - sum_Y * sum_Y));
+        return corr;
     }
 
 
@@ -200,42 +278,4 @@ public class CalculateSoundSimilarity {
                 * (n * squareSum_Y - sum_Y * sum_Y));
         return corr;
     }
-
-    /*
-    public static double correlationCoefficient(DataSound newSound, DataSound compareSound)
-    {
-        var newSoundData = newSound.getFreqDomainPoints();
-        var compareSoundData = compareSound.getFreqDomainPoints();
-        int n = Math.min(newSoundData.size(),compareSoundData.size());
-
-        int sum_X = 0, sum_Y = 0, sum_XY = 0;
-        int squareSum_X = 0, squareSum_Y = 0;
-
-        for (int i = 0; i < n; i++)
-        {
-            // sum of elements of array X.
-            int X = (int)newSoundData.get(i).getY();
-            int Y = (int)compareSoundData.get(i).getY();
-            sum_X = sum_X + X;
-
-            // sum of elements of array Y.
-            sum_Y = sum_Y + Y;
-
-            // sum of X[i] * Y[i].
-            sum_XY = sum_XY + X * Y;
-
-            // sum of square of array elements.
-            squareSum_X = squareSum_X + X * X;
-            squareSum_Y = squareSum_Y + Y * Y;
-        }
-
-        // use formula for calculating correlation coefficient.
-        double corr = (n * sum_XY - sum_X * sum_Y)
-                / Math.sqrt((n * squareSum_X - sum_X * sum_X)
-                * (n * squareSum_Y - sum_Y * sum_Y));
-
-        return corr;
-    }
-
-     */
 }
