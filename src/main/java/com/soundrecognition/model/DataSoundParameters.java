@@ -32,15 +32,19 @@ public class DataSoundParameters implements Serializable {
     @Column
     public List<Integer> powerSpectrum;
 
-    public Integer zeroCrossingDensity;
+    @ElementCollection
+    @Column
+    public List<Integer> spectralCentroids;
 
-    public DataSoundParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, List<Integer> powerSpectrum, Integer zeroCrossingDensity) {
-        this.typeName = type;
-        this.signalEnvelope = signalEnvelope;
-        this.rootMeanSquareEnergy = rootMeanSquareEnergy;
-        this.powerSpectrum = powerSpectrum;
-        this.zeroCrossingDensity = zeroCrossingDensity;
-    }
+    @ElementCollection
+    @Column
+    public List<Integer> spectralFluxes;
+
+    @ElementCollection
+    @Column
+    public List<Integer> spectralRollOffPoints;
+
+    public Integer zeroCrossingDensity;
 
     @Override
     public String toString() {
@@ -48,6 +52,9 @@ public class DataSoundParameters implements Serializable {
                 "signalEnvelope=" + signalEnvelope +
                 ", rootMeanSquareEnergy=" + rootMeanSquareEnergy +
                 ", zeroCrossingDensity=" + zeroCrossingDensity +
+                ", spectralCentroids=" + spectralCentroids +
+                ", spectralFluxs=" + spectralFluxes +
+                ", spectralRolloffPoints=" + spectralRollOffPoints +
                 '}';
     }
 

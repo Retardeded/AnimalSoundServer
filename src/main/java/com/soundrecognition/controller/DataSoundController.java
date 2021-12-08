@@ -1,10 +1,7 @@
 package com.soundrecognition.controller;
 
 
-import com.soundrecognition.model.DataSound;
-import com.soundrecognition.model.SoundType;
-import com.soundrecognition.model.PowerSpectrumCoefficient;
-import com.soundrecognition.model.SoundsTimeCoefficients;
+import com.soundrecognition.model.*;
 import com.soundrecognition.service.DataSoundService;
 import javassist.NotFoundException;
 import org.springframework.data.util.Pair;
@@ -66,18 +63,22 @@ public class DataSoundController {
     }
 
     @PostMapping("/checkTime")
-    public List<Pair<SoundType, SoundsTimeCoefficients>> checkSound(@RequestBody DataSound dataSound) {
+    public List<Pair<SoundType, SoundsTimeCoefficients>> checkSoundTimeDomain(@RequestBody DataSound dataSound) {
         var list = sounds.getMostSimilarSoundsTimeDomain(dataSound);
         return list;
     }
 
     @PostMapping("/checkPowerSpectrum")
-    public List<Pair<SoundType, PowerSpectrumCoefficient>> checkSoundFrequencyDomain(@RequestBody DataSound dataSound) {
-        var list = sounds.getMostSimilarSoundsFreqDomain(dataSound);
+    public List<Pair<SoundType, PowerSpectrumCoefficient>> checkSoundPowerSpectrum(@RequestBody DataSound dataSound) {
+        var list = sounds.getMostSimilarSoundsPowerSpectrum(dataSound);
         return list;
     }
 
-
+    @PostMapping("/checkFreq")
+    public List<Pair<SoundType, SoundsFreqCoefficients>> checkSoundFrequencyDomain(@RequestBody DataSound dataSound) {
+        var list = sounds.getMostSimilarSoundsFreqDomain(dataSound);
+        return list;
+    }
 
     private Optional<DataSound> getDataSound(String id) throws NotFoundException {
         return sounds.getDataSound(Integer.parseInt(id));

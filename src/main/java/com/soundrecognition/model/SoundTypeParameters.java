@@ -101,6 +101,85 @@ public class SoundTypeParameters implements Serializable {
     @Column
     public List<Integer> powerSpectrumCount;
 
+
+    @ElementCollection
+    @Column
+    private List<Integer> spectralCentroids;
+
+    public List<Integer> getSpectralCentroidsRaw() {
+        return spectralCentroids;
+    }
+
+    public List<Integer> getSpectralCentroidsWeighted() {
+        var result = IntStream.range(0, spectralCentroids.size())
+                .map(i -> spectralCentroids.get(i) / spectralCentroidsCount.get(i))
+                .boxed()
+                .collect(Collectors.toList());
+
+        return result;
+    }
+
+    public void setSpectralCentroids(List<Integer> spectralCentroids) {
+        this.spectralCentroids = spectralCentroids;
+    }
+
+    @ElementCollection
+    @Column
+    public List<Integer> spectralCentroidsCount;
+
+    @ElementCollection
+    @Column
+    private List<Integer> spectralFluxes;
+
+    public List<Integer> getSpectralFluxesRaw() {
+        return spectralFluxes;
+    }
+
+    public List<Integer> getSpectralFluxesWeighted() {
+        var result = IntStream.range(0, spectralFluxes.size())
+                .map(i -> spectralFluxes.get(i) / spectralFluxesCount.get(i))
+                .boxed()
+                .collect(Collectors.toList());
+
+        return result;
+    }
+
+    public void setSpectralFluxes(List<Integer> spectralCentroids) {
+        this.spectralFluxes = spectralFluxes;
+    }
+
+    @ElementCollection
+    @Column
+    public List<Integer> spectralFluxesCount;
+
+
+    @ElementCollection
+    @Column
+    private List<Integer> spectralRolloffPoints;
+
+    public List<Integer> getSpectralRolloffPointsRaw() {
+        return spectralRolloffPoints;
+    }
+
+    public List<Integer> getSpectralRolloffPointsWeighted() {
+        var result = IntStream.range(0, spectralRolloffPoints.size())
+                .map(i -> spectralRolloffPoints.get(i) / spectralRolloffPointsCount.get(i))
+                .boxed()
+                .collect(Collectors.toList());
+
+        return result;
+    }
+
+    public void setSpectralRolloffPoints(List<Integer> spectralRolloffPoints) {
+        this.spectralRolloffPoints = spectralRolloffPoints;
+    }
+
+    @ElementCollection
+    @Column
+    public List<Integer> spectralRolloffPointsCount;
+
+
+
     private Integer zeroCrossingDensity;
 
     public Integer getZeroCrossingDensityWeighted() {
@@ -122,16 +201,23 @@ public class SoundTypeParameters implements Serializable {
 
     public Integer zeroCrossingDensityCount;
 
-    public SoundTypeParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, List<Integer> powerSpectrum, Integer zeroCrossingDensity) {
+    public SoundTypeParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, Integer zeroCrossingDensity, List<Integer> powerSpectrum, List<Integer> spectralCentroids, List<Integer> spectralFluxes, List<Integer> spectralRolloffPoints) {
         this.typeName = type;
         this.signalEnvelope = signalEnvelope;
         this.signalEnvelopeCount = new ArrayList<Integer>(Collections.nCopies(signalEnvelope.size(), 1));
         this.rootMeanSquareEnergy = rootMeanSquareEnergy;
         this.rootMeanSquareEnergyCount = new ArrayList<Integer>(Collections.nCopies(rootMeanSquareEnergy.size(), 1));
-        this.powerSpectrum = powerSpectrum;
-        this.powerSpectrumCount = new ArrayList<Integer>(Collections.nCopies(powerSpectrum.size(), 1));
         this.zeroCrossingDensityCount = 1;
         this.zeroCrossingDensity = zeroCrossingDensity;
+        this.powerSpectrum = powerSpectrum;
+        this.powerSpectrumCount = new ArrayList<Integer>(Collections.nCopies(powerSpectrum.size(), 1));
+        this.spectralCentroids = spectralCentroids;
+        this.spectralCentroidsCount = new ArrayList<Integer>(Collections.nCopies(spectralCentroids.size(), 1));
+        this.spectralFluxes = spectralFluxes;
+        this.spectralCentroidsCount = new ArrayList<Integer>(Collections.nCopies(spectralCentroids.size(), 1));
+        this.spectralRolloffPoints = spectralRolloffPoints;
+        this.spectralRolloffPointsCount = new ArrayList<Integer>(Collections.nCopies(spectralRolloffPoints.size(), 1));
+
     }
 
     @Override
