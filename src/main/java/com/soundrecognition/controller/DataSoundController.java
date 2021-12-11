@@ -24,10 +24,10 @@ public class DataSoundController {
     }
 
 
-    @GetMapping
-    public ResponseEntity<List<DataSound>> get() {
-        return ResponseEntity.ok(sounds.getDataSounds());
-    }
+    //@GetMapping
+    //public ResponseEntity<List<DataSound>> get() {
+    //    return ResponseEntity.ok(sounds.getDataSounds());
+    //}
 
     @GetMapping("/soundsInfo")
     public ResponseEntity<List<DataSound>> getSoundsInfoOnly() {

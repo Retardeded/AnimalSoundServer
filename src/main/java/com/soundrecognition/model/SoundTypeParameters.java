@@ -1,20 +1,30 @@
 package com.soundrecognition.model;
 
 import lombok.*;
+import org.hibernate.mapping.Map;
+import org.springframework.data.relational.core.sql.In;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @NoArgsConstructor
 @Setter
 @Getter
 @Entity
 public class SoundTypeParameters implements Serializable {
+
+    public enum ParameterName {
+        SignalEnvelope,
+        RootMeanSquareEnergy,
+        PowerSpectrum,
+        SpectralCentroids,
+        SpectralFluxes,
+        SpectralRollOffPoints
+    }
 
     @Id
     @Column
@@ -24,162 +34,11 @@ public class SoundTypeParameters implements Serializable {
     @Column
     public String typeName;
 
-    @ElementCollection
-    @Column
-    private List<Integer> signalEnvelope;
+    @OneToMany(cascade = {CascadeType.ALL})
+    public List<SoundTypeParameterInt> parametersListInt = new ArrayList<>();
 
-    public List<Integer> getSignalEnvelopeRaw() {
-
-      return signalEnvelope;
-    }
-
-    public List<Integer> getSignalEnvelopeWeighted() {
-
-        var result = IntStream.range(0, signalEnvelope.size())
-                .map(i -> signalEnvelope.get(i) / signalEnvelopeCount.get(i))
-                .boxed()
-                .collect(Collectors.toList());
-
-        return result;
-    }
-
-    public void setSignalEnvelope(List<Integer> signalEnvelope) {
-        this.signalEnvelope = signalEnvelope;
-    }
-
-    public List<Integer> getRootMeanSquareEnergyRaw() {
-        return rootMeanSquareEnergy;
-    }
-
-    public List<Integer> getRootMeanSquareEnergyWeighted() {
-        var result = IntStream.range(0, rootMeanSquareEnergy.size())
-                .map(i -> rootMeanSquareEnergy.get(i) / rootMeanSquareEnergyCount.get(i))
-                .boxed()
-                .collect(Collectors.toList());
-
-        return result;
-    }
-
-    public void setRootMeanSquareEnergy(List<Integer> rootMeanSquareEnergy) {
-        this.rootMeanSquareEnergy = rootMeanSquareEnergy;
-    }
-
-    @ElementCollection
-    @Column
-    public List<Integer> signalEnvelopeCount;
-
-    @ElementCollection
-    @Column
-    private List<Integer> rootMeanSquareEnergy;
-
-    @ElementCollection
-    @Column
-    public List<Integer> rootMeanSquareEnergyCount;
-
-    @ElementCollection
-    @Column
-    private List<Integer> powerSpectrum;
-
-    public List<Integer> getPowerSpectrumRaw() {
-        return powerSpectrum;
-    }
-
-    public List<Integer> getPowerSpectrumWeighted() {
-        var result = IntStream.range(0, powerSpectrum.size())
-                .map(i -> powerSpectrum.get(i) / powerSpectrumCount.get(i))
-                .boxed()
-                .collect(Collectors.toList());
-
-        return result;
-    }
-
-    public void setPowerSpectrum(List<Integer> powerSpectrum) {
-        this.powerSpectrum = powerSpectrum;
-    }
-
-    @ElementCollection
-    @Column
-    public List<Integer> powerSpectrumCount;
-
-
-    @ElementCollection
-    @Column
-    private List<Integer> spectralCentroids;
-
-    public List<Integer> getSpectralCentroidsRaw() {
-        return spectralCentroids;
-    }
-
-    public List<Integer> getSpectralCentroidsWeighted() {
-        var result = IntStream.range(0, spectralCentroids.size())
-                .map(i -> spectralCentroids.get(i) / spectralCentroidsCount.get(i))
-                .boxed()
-                .collect(Collectors.toList());
-
-        return result;
-    }
-
-    public void setSpectralCentroids(List<Integer> spectralCentroids) {
-        this.spectralCentroids = spectralCentroids;
-    }
-
-    @ElementCollection
-    @Column
-    public List<Integer> spectralCentroidsCount;
-
-    @ElementCollection
-    @Column
-    private List<Integer> spectralFluxes;
-
-    public List<Integer> getSpectralFluxesRaw() {
-        return spectralFluxes;
-    }
-
-    public List<Integer> getSpectralFluxesWeighted() {
-        var result = IntStream.range(0, spectralFluxes.size())
-                .map(i -> spectralFluxes.get(i) / spectralFluxesCount.get(i))
-                .boxed()
-                .collect(Collectors.toList());
-
-        return result;
-    }
-
-    public void setSpectralFluxes(List<Integer> spectralCentroids) {
-        this.spectralFluxes = spectralFluxes;
-    }
-
-    @ElementCollection
-    @Column
-    public List<Integer> spectralFluxesCount;
-
-
-    @ElementCollection
-    @Column
-    private List<Double> spectralRolloffPoints;
-
-    public List<Double> getSpectralRollOffPointsRaw() {
-        return spectralRolloffPoints;
-    }
-
-    public List<Double> getSpectralRolloffPointsWeighted() {
-
-        var weighted = new ArrayList<Double>();
-        for (int i = 0; i< spectralRollOffPointsCount.size(); i++) {
-            weighted.add(spectralRolloffPoints.get(i) / spectralRollOffPointsCount.get(i));
-        }
-
-        return weighted;
-    }
-
-    public void setSpectralRolloffPoints(List<Double> spectralRolloffPoints) {
-        this.spectralRolloffPoints = spectralRolloffPoints;
-    }
-
-    @ElementCollection
-    @Column
-    public List<Integer> spectralRollOffPointsCount;
-
-
+    @OneToMany(cascade = {CascadeType.ALL})
+    public List<SoundTypeParameterDouble> parametersListDouble = new ArrayList<>();
 
     private Integer zeroCrossingDensity;
 
@@ -202,91 +61,78 @@ public class SoundTypeParameters implements Serializable {
 
     public Integer zeroCrossingDensityCount;
 
-    public SoundTypeParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, Integer zeroCrossingDensity, List<Integer> powerSpectrum, List<Integer> spectralCentroids, List<Integer> spectralFluxes, List<Double> spectralRolloffPoints) {
+    public SoundTypeParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, Integer zeroCrossingDensity, List<Integer> powerSpectrum, List<Double> spectralCentroids, List<Integer> spectralFluxes, List<Double> spectralRolloffPoints) {
         this.typeName = type;
-        this.signalEnvelope = signalEnvelope;
-        this.signalEnvelopeCount = new ArrayList<Integer>(Collections.nCopies(signalEnvelope.size(), 1));
-        this.rootMeanSquareEnergy = rootMeanSquareEnergy;
-        this.rootMeanSquareEnergyCount = new ArrayList<Integer>(Collections.nCopies(rootMeanSquareEnergy.size(), 1));
+        this.parametersListInt.add(createParameterInt(signalEnvelope, ParameterName.SignalEnvelope));
+        this.parametersListInt.add(createParameterInt(rootMeanSquareEnergy, ParameterName.RootMeanSquareEnergy));
         this.zeroCrossingDensityCount = 1;
         this.zeroCrossingDensity = zeroCrossingDensity;
-        this.powerSpectrum = powerSpectrum;
-        this.powerSpectrumCount = new ArrayList<Integer>(Collections.nCopies(powerSpectrum.size(), 1));
-        this.spectralCentroids = spectralCentroids;
-        this.spectralCentroidsCount = new ArrayList<Integer>(Collections.nCopies(spectralCentroids.size(), 1));
-        this.spectralFluxes = spectralFluxes;
-        this.spectralFluxesCount = new ArrayList<Integer>(Collections.nCopies(spectralFluxes.size(), 1));
-        this.spectralRolloffPoints = spectralRolloffPoints;
-        this.spectralRollOffPointsCount = new ArrayList<Integer>(Collections.nCopies(spectralRolloffPoints.size(), 1));
-
+        this.parametersListInt.add(createParameterInt(powerSpectrum, ParameterName.PowerSpectrum));
+        this.parametersListDouble.add(createParameterDouble(spectralCentroids, ParameterName.SpectralCentroids));
+        this.parametersListInt.add(createParameterInt(spectralFluxes, ParameterName.SpectralFluxes));
+        this.parametersListDouble.add(createParameterDouble(spectralRolloffPoints, ParameterName.SpectralRollOffPoints));
     }
 
-    @Override
-    public String toString() {
-        return "DataSoundParameters{" +
-                "signalEnvelope=" + getSignalEnvelopeWeighted() +
-                ", rootMeanSquareEnergy=" + getRootMeanSquareEnergyWeighted() +
-                ", powerSpectrum=" + getPowerSpectrumWeighted() +
-                ", zeroCrossingDensity=" + zeroCrossingDensity +
-                '}';
+    private SoundTypeParameterInt createParameterInt(List<Integer> valuesList, ParameterName name) {
+        return new SoundTypeParameterInt(valuesList, new ArrayList<Integer>(Collections.nCopies(valuesList.size(), 1)), name);
+    }
+    private SoundTypeParameterDouble createParameterDouble(List<Double> valuesList, ParameterName name) {
+        return new SoundTypeParameterDouble(valuesList, new ArrayList<Integer>(Collections.nCopies(valuesList.size(), 1)), name);
     }
 
-    public void calculateNewParamAverageAdd(List<Integer> parametersPresent, List<Integer> parametersNew, List<Integer> parametersCount) {
-        int minSize = Math.min(parametersNew.size(), parametersPresent.size());
-        for(int i = 0; i < minSize; i++) {
-            parametersPresent.set(i, (parametersPresent.get(i) + parametersNew.get(i)));
-            parametersCount.set(i, parametersCount.get(i)+1);
+    public SoundTypeParameterInt getParamIntByName(ParameterName name) {
+        for (var param:parametersListInt
+        ) {
+            if(param.name.equals(name))
+                return param;
         }
-        if(minSize == parametersPresent.size()) {
-            int maxSize = Math.max(parametersNew.size(), parametersPresent.size());
-            for(int i = minSize; i < maxSize;i++) {
-                parametersPresent.add(parametersNew.get(i));
-                parametersCount.add(1);
-            }
-        }
+        return null;
     }
 
-    public void calculateNewParamAverageAddDouble(List<Double> parametersPresent, List<Double> parametersNew, List<Integer> parametersCount) {
-        int minSize = Math.min(parametersNew.size(), parametersPresent.size());
-        for(int i = 0; i < minSize; i++) {
-            parametersPresent.set(i, (parametersPresent.get(i) + parametersNew.get(i)));
-            parametersCount.set(i, parametersCount.get(i)+1);
+    public SoundTypeParameterDouble getParamDoubleByName(ParameterName name) {
+        for (var param:parametersListDouble
+        ) {
+            if(param.name.equals(name))
+                return param;
         }
-        if(minSize == parametersPresent.size()) {
-            int maxSize = Math.max(parametersNew.size(), parametersPresent.size());
-            for(int i = minSize; i < maxSize;i++) {
-                parametersPresent.add(parametersNew.get(i));
-                parametersCount.add(1);
-            }
-        }
+        return null;
+    }
+    public void setParameterInt(ParameterName name) {
+        var param = getParamIntByName(name);
+        param.setParameterValues(param.getParameterValuesWeighted());
     }
 
-
-    public void calculateNewParamAverageDelete(List<Integer> parametersType, List<Integer> parametersSound, List<Integer> parametersCount) {
-        int minSize = Math.min(parametersType.size(), parametersSound.size());
-        for(int i = 0; i < minSize; i++) {
-            parametersType.set(i, ((parametersType.get(i)  - parametersSound.get(i) )));
-            parametersCount.set(i, parametersCount.get(i)-1);
-        }
-
-        while(parametersCount.get(parametersType.size()-1) == 0) {
-            parametersType.remove(parametersCount.size()-1);
-            parametersCount.remove(parametersCount.size()-1);
-        }
+    public void updateIntParameterValueAdd(ParameterName name) {
+        var param = getParamIntByName(name);
+        param.calculateNewParamAverageAdd(param.getParameterValuesRaw());
     }
 
-    public void calculateNewParamAverageDeleteDouble(List<Double> parametersType, List<Double> parametersSound, List<Integer> parametersCount) {
-        int minSize = Math.min(parametersType.size(), parametersSound.size());
-        for(int i = 0; i < minSize; i++) {
-            parametersType.set(i, ((parametersType.get(i)  - parametersSound.get(i) )));
-            parametersCount.set(i, parametersCount.get(i)-1);
-        }
-
-        while(parametersCount.get(parametersType.size()-1) == 0) {
-            parametersType.remove(parametersCount.size()-1);
-            parametersCount.remove(parametersCount.size()-1);
-        }
+    public List<Integer> getParameterIntWeighted(ParameterName name) {
+        var param = getParamIntByName(name);
+        return param.getParameterValuesWeighted();
     }
 
+    public Integer getParameterIntSize(ParameterName name) {
+        var param = getParamIntByName(name);
+        return param.getParameterValuesCount().size();
+    }
 
+    public void setParameterDouble(ParameterName name) {
+        var param = getParamDoubleByName(name);
+        param.setParameterValues(param.getParameterValuesWeighted());
+    }
+
+    public void updateDoubleParameterValueAdd(ParameterName name) {
+        var param = getParamDoubleByName(name);
+        param.calculateNewParamAverageAdd(param.getParameterValuesRaw());
+    }
+
+    public List<Double> getParameterDoubleWeighted(ParameterName name) {
+        var param = getParamDoubleByName(name);
+        return param.getParameterValuesWeighted();
+    }
+    public Integer getParameterDoubleSize(ParameterName name) {
+        var param = getParamDoubleByName(name);
+        return param.getParameterValuesCount().size();
+    }
 }

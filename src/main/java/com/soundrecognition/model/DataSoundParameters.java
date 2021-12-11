@@ -34,7 +34,7 @@ public class DataSoundParameters implements Serializable {
 
     @ElementCollection
     @Column
-    public List<Integer> spectralCentroids;
+    public List<Double> spectralCentroids;
 
     @ElementCollection
     @Column
@@ -53,7 +53,7 @@ public class DataSoundParameters implements Serializable {
                 ", rootMeanSquareEnergy=" + rootMeanSquareEnergy +
                 ", zeroCrossingDensity=" + zeroCrossingDensity +
                 ", spectralCentroids=" + spectralCentroids +
-                ", spectralFluxs=" + spectralFluxes +
+                ", spectralFluxes=" + spectralFluxes +
                 ", spectralRolloffPoints=" + spectralRollOffPoints +
                 '}';
     }

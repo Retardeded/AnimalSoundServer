@@ -102,6 +102,8 @@ public class DataSoundService {
             return dataSound;
 
         DataSoundParameters newSoundParams = getDataSoundParameters(dataSound, "111");
+        System.out.println("enveolope:::" + newSoundParams.signalEnvelope);
+        System.out.println("type::" + dataSound.getType());
         dataSound.setDataSoundParameters(newSoundParams);
         SoundTypeParameters soundTypeParameters = new SoundTypeParameters(dataSound.getType(), newSoundParams.signalEnvelope,
                 newSoundParams.rootMeanSquareEnergy,newSoundParams.zeroCrossingDensity, newSoundParams.powerSpectrum,
@@ -117,12 +119,13 @@ public class DataSoundService {
                     var soundTypeParametersPresent = paramsOptional.get();
                     var currentZeroCrossingDensity = soundTypeParametersPresent.getZeroCrossingDensityRaw();
                     soundTypeParametersPresent.UpdateZeroCrossingDensity(currentZeroCrossingDensity, soundTypeParameters.getZeroCrossingDensity(), true);
-                    soundTypeParametersPresent.calculateNewParamAverageAdd(soundTypeParametersPresent.getSignalEnvelopeRaw(), soundTypeParameters.getSignalEnvelopeRaw(), soundTypeParametersPresent.signalEnvelopeCount);
-                    soundTypeParametersPresent.calculateNewParamAverageAdd(soundTypeParametersPresent.getRootMeanSquareEnergyRaw(), soundTypeParameters.getRootMeanSquareEnergyRaw(), soundTypeParametersPresent.rootMeanSquareEnergyCount);
 
-                    soundTypeParametersPresent.calculateNewParamAverageAdd(soundTypeParametersPresent.getSpectralCentroidsRaw(), soundTypeParameters.getSpectralCentroidsRaw(), soundTypeParametersPresent.spectralCentroidsCount);
-                    soundTypeParametersPresent.calculateNewParamAverageAdd(soundTypeParametersPresent.getSpectralFluxesRaw(), soundTypeParameters.getSpectralFluxesRaw(), soundTypeParametersPresent.spectralFluxesCount);
-                    soundTypeParametersPresent.calculateNewParamAverageAddDouble(soundTypeParametersPresent.getSpectralRollOffPointsRaw(), soundTypeParameters.getSpectralRollOffPointsRaw(), soundTypeParametersPresent.spectralRollOffPointsCount);
+                    for (var param:soundTypeParameters.parametersListInt) {
+                        soundTypeParameters.updateIntParameterValueAdd(param.name);
+                    }
+                    for (var param:soundTypeParametersPresent.parametersListDouble) {
+                        soundTypeParameters.updateDoubleParameterValueAdd(param.name);
+                    }
 
                     var list = soundType.getDataSounds();
                     cleanSoundData(dataSound);
@@ -272,19 +275,21 @@ public class DataSoundService {
     private void makeSoundTypeRightForSendingThroughNetwork(SoundType soundType) {
         cleanSoundTypeData(soundType);
         var typeParams = soundType.soundTypeParameters;
-        typeParams.setRootMeanSquareEnergy(typeParams.getRootMeanSquareEnergyWeighted());
-        typeParams.setSignalEnvelope(typeParams.getSignalEnvelopeWeighted());
+
         typeParams.setZeroCrossingDensity(typeParams.getZeroCrossingDensityWeighted());
-        typeParams.setPowerSpectrum(typeParams.getPowerSpectrumWeighted());
-        typeParams.setSpectralCentroids(typeParams.getSpectralCentroidsWeighted());
-        typeParams.setSpectralFluxes(typeParams.getSpectralFluxesWeighted());
-        typeParams.setSpectralRolloffPoints(typeParams.getSpectralRollOffPointsRaw());
+
+        for (var param:typeParams.parametersListInt) {
+            typeParams.setParameterInt(param.name);
+        }
+        for (var param:typeParams.parametersListDouble) {
+            typeParams.setParameterDouble(param.name);
+        }
     }
 
     public Optional<DataSound> getDataSound(Integer id) throws NotFoundException {
         Optional<DataSound> data = dataSoundRepository.findById(id);
 
-        if (data == null)
+        if (data.isEmpty())
             throw new NotFoundException("Product not found");
 
         return data;
@@ -300,17 +305,15 @@ public class DataSoundService {
                 var soundParams = dataSound.getDataSoundParameters();
 
                 paramsType.UpdateZeroCrossingDensity(paramsType.getZeroCrossingDensityRaw(), soundParams.getZeroCrossingDensity(), false);
-                paramsType.calculateNewParamAverageDelete(paramsType.getSignalEnvelopeRaw(), soundParams.signalEnvelope, paramsType.signalEnvelopeCount);
-                paramsType.calculateNewParamAverageDelete(paramsType.getRootMeanSquareEnergyRaw(), soundParams.rootMeanSquareEnergy, paramsType.rootMeanSquareEnergyCount);
 
-                paramsType.calculateNewParamAverageDelete(paramsType.getPowerSpectrumRaw(), soundParams.powerSpectrum, paramsType.powerSpectrumCount);
-
-                paramsType.calculateNewParamAverageDelete(paramsType.getSpectralCentroidsRaw(), soundParams.spectralCentroids, paramsType.spectralCentroidsCount);
-                paramsType.calculateNewParamAverageDelete(paramsType.getSpectralFluxesRaw(), soundParams.spectralFluxes, paramsType.spectralFluxesCount);
-                paramsType.calculateNewParamAverageDeleteDouble(paramsType.getSpectralRollOffPointsRaw(), soundParams.spectralRollOffPoints, paramsType.spectralRollOffPointsCount);
-
+                for (var param:paramsType.parametersListInt) {
+                    paramsType.updateIntParameterValueAdd(param.name);
+                }
+                for (var param:paramsType.parametersListDouble) {
+                    paramsType.updateDoubleParameterValueAdd(param.name);
+                }
                 sounds.remove(dataSound);
-               soundTypeRepository.save(soundType);
+                soundTypeRepository.save(soundType);
                 soundTypeParametersRepository.delete(paramsType);
                 dataSoundRepository.delete(dataSound);
             } else {
