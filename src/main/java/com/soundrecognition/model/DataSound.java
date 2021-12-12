@@ -21,6 +21,16 @@ public class DataSound implements Comparator<DataPoint> {
     @GeneratedValue
     private Integer id;
 
+    public DataSound(Integer id, String title, String type, Long durationMillis, Long pointsInGraphs, Long numOfGraphs, DataSoundParameters dataSoundParameters) {
+        this.id = id;
+        this.title = title;
+        this.type = type;
+        this.durationMillis = durationMillis;
+        this.pointsInGraphs = pointsInGraphs;
+        this.numOfGraphs = numOfGraphs;
+        this.dataSoundParameters = dataSoundParameters;
+    }
+
     @Column
     private String title;
 

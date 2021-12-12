@@ -74,7 +74,7 @@ public class SoundTypeParameterInt implements Serializable {
             parameterValuesCount.set(i, parameterValuesCount.get(i)-1);
         }
 
-        while(parameterValuesCount.get(parameterValues.size()-1) == 0) {
+        while(parameterValuesCount.size() > 0 && parameterValuesCount.get(parameterValuesCount.size()-1) == 0) {
             parameterValues.remove(parameterValuesCount.size()-1);
             parameterValuesCount.remove(parameterValuesCount.size()-1);
         }

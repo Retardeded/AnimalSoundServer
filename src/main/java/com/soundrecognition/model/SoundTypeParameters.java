@@ -107,6 +107,11 @@ public class SoundTypeParameters implements Serializable {
         param.calculateNewParamAverageAdd(param.getParameterValuesRaw());
     }
 
+    public void updateIntParameterValueDelete(ParameterName name) {
+        var param = getParamIntByName(name);
+        param.calculateNewParamAverageDelete(param.getParameterValuesRaw());
+    }
+
     public List<Integer> getParameterIntWeighted(ParameterName name) {
         var param = getParamIntByName(name);
         return param.getParameterValuesWeighted();
@@ -125,6 +130,11 @@ public class SoundTypeParameters implements Serializable {
     public void updateDoubleParameterValueAdd(ParameterName name) {
         var param = getParamDoubleByName(name);
         param.calculateNewParamAverageAdd(param.getParameterValuesRaw());
+    }
+
+    public void updateDoubleParameterValueDelete(ParameterName name) {
+        var param = getParamDoubleByName(name);
+        param.calculateNewParamAverageDelete(param.getParameterValuesRaw());
     }
 
     public List<Double> getParameterDoubleWeighted(ParameterName name) {
