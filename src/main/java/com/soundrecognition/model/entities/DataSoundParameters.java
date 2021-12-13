@@ -1,4 +1,4 @@
-package com.soundrecognition.model;
+package com.soundrecognition.model.entities;
 
 import lombok.*;
 

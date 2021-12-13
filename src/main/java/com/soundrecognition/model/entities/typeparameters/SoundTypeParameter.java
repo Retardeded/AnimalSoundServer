@@ -1,4 +1,4 @@
-package com.soundrecognition.model;
+package com.soundrecognition.model.entities.typeparameters;
 
 import java.util.List;
 

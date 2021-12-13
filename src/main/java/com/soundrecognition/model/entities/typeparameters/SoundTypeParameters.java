@@ -1,16 +1,14 @@
-package com.soundrecognition.model;
+package com.soundrecognition.model.entities.typeparameters;
 
 import lombok.*;
-import org.hibernate.mapping.Map;
-import org.springframework.data.relational.core.sql.In;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
+@Table
 @NoArgsConstructor
 @Setter
 @Getter
@@ -103,7 +101,6 @@ public class SoundTypeParameters implements Serializable {
     public void updateParameterValueAdd(ParameterName name, List<?> value) {
         var param = getParamByName(name);
         param.calculateNewParamAverageAdd(value);
-        System.out.println("ENVELOP3:::" + param.getParameterValuesWeighted());
     }
 
     public void updateParameterValueDelete(ParameterName name) {

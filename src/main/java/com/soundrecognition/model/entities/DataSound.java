@@ -1,5 +1,6 @@
-package com.soundrecognition.model;
+package com.soundrecognition.model.entities;
 
+import com.soundrecognition.model.DataPoint;
 import lombok.*;
 
 import javax.persistence.*;

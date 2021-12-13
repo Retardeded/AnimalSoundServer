@@ -1,5 +1,6 @@
-package com.soundrecognition.model;
+package com.soundrecognition.model.entities;
 
+import com.soundrecognition.model.entities.typeparameters.SoundTypeParameters;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

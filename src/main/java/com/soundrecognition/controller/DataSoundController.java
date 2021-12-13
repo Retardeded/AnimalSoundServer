@@ -1,7 +1,11 @@
 package com.soundrecognition.controller;
 
 
-import com.soundrecognition.model.*;
+import com.soundrecognition.model.coefficients.PowerSpectrumCoefficient;
+import com.soundrecognition.model.coefficients.SoundsFreqCoefficients;
+import com.soundrecognition.model.coefficients.SoundsTimeCoefficients;
+import com.soundrecognition.model.entities.DataSound;
+import com.soundrecognition.model.entities.SoundType;
 import com.soundrecognition.service.DataSoundService;
 import javassist.NotFoundException;
 import org.springframework.data.util.Pair;

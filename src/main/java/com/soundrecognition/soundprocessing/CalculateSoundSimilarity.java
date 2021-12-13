@@ -2,6 +2,12 @@ package com.soundrecognition.soundprocessing;
 
 import ca.uol.aig.fftpack.RealDoubleFFT;
 import com.soundrecognition.model.*;
+import com.soundrecognition.model.coefficients.PowerSpectrumCoefficient;
+import com.soundrecognition.model.coefficients.SoundsFreqCoefficients;
+import com.soundrecognition.model.coefficients.SoundsTimeCoefficients;
+import com.soundrecognition.model.entities.DataSound;
+import com.soundrecognition.model.entities.DataSoundParameters;
+import com.soundrecognition.model.entities.typeparameters.SoundTypeParameters;
 
 import java.util.ArrayList;
 import java.util.List;

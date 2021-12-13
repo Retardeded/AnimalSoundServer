@@ -1,4 +1,4 @@
-package com.soundrecognition.model;
+package com.soundrecognition.model.coefficients;
 
 public class SoundsTimeCoefficients implements CorrelationCoefficient {
     public double envelopeCoefficient;

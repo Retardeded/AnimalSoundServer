@@ -1,6 +1,13 @@
 package com.soundrecognition.service;
 ;
-import com.soundrecognition.model.*;
+import com.soundrecognition.model.coefficients.CorrelationCoefficient;
+import com.soundrecognition.model.coefficients.PowerSpectrumCoefficient;
+import com.soundrecognition.model.coefficients.SoundsFreqCoefficients;
+import com.soundrecognition.model.coefficients.SoundsTimeCoefficients;
+import com.soundrecognition.model.entities.DataSound;
+import com.soundrecognition.model.entities.DataSoundParameters;
+import com.soundrecognition.model.entities.SoundType;
+import com.soundrecognition.model.entities.typeparameters.SoundTypeParameters;
 import com.soundrecognition.repository.DataSoundRepository;
 import com.soundrecognition.repository.SoundTypeParametersRepository;
 import com.soundrecognition.repository.SoundTypeRepository;
@@ -96,12 +103,11 @@ public class DataSoundService {
 
         DataSoundParameters newSoundParams = getDataSoundParameters(dataSound, "111");
         System.out.println("enveolope:::" + newSoundParams.signalEnvelope);
-        System.out.println("type::" + dataSound.getType());
         dataSound.setDataSoundParameters(newSoundParams);
         SoundTypeParameters newSoundTypeParams = new SoundTypeParameters(dataSound.getType(), newSoundParams.signalEnvelope,
                 newSoundParams.rootMeanSquareEnergy,newSoundParams.zeroCrossingDensity, newSoundParams.powerSpectrum,
                 newSoundParams.spectralCentroids, newSoundParams.spectralFluxes, newSoundParams.spectralRollOffPoints);
-        dataSoundRepository.save(dataSound);
+        dataSoundRepository.saveAndFlush(dataSound);
         if(!dataSound.getType().equals("")) {
             var soundTypeOptional = soundTypeRepository.findByName(dataSound.getType());
             if(soundTypeOptional.isPresent()) {
@@ -121,21 +127,15 @@ public class DataSoundService {
                     presentSoundTypeParams.updateParameterValueAdd(param.name, value);
                 }
 
-                //var list = soundType.getDataSounds();
-                //cleanSoundData(dataSound);
-                //list.add(dataSound);
+                cleanSoundData(dataSound);
+                soundType.getDataSounds().add(dataSound);
                 soundTypeParametersRepository.saveAndFlush(presentSoundTypeParams);
-                soundTypeRepository.saveAndFlush(soundType);
-                System.out.println("ENVELOPE W::::::::" +presentSoundTypeParams.getParameterWeighted(SoundTypeParameters.ParameterName.SignalEnvelope));
-                System.out.println("ENVELOPE RAW::::::::" +presentSoundTypeParams.getParameterIntRaw(SoundTypeParameters.ParameterName.SignalEnvelope));
             }  else {
-                System.out.println("tuuu1");
                 newSoundTypeParams.typeName = dataSound.getType();
                 var sounds = Arrays.asList(dataSound);
                 SoundType newSoundType = new SoundType(dataSound.getType(), sounds, newSoundTypeParams);
                 soundTypeParametersRepository.saveAndFlush(newSoundTypeParams);
                 soundTypeRepository.saveAndFlush(newSoundType);
-                System.out.println("tuuu1");
             }
         }
 
