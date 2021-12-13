@@ -43,6 +43,7 @@ public class DataSoundService {
         ArrayList<SoundType> data = new ArrayList<>();
         for (var soundType: soundTypeRepository.findAll() ) {
             makeSoundTypeRightForSendingThroughNetwork(soundType);
+            System.out.println(soundType.soundTypeParameters.parametersListInt.get(0).getParameterValuesRaw());
             data.add(soundType);
         }
         return data;
@@ -76,7 +77,7 @@ public class DataSoundService {
             int n = Math.toIntExact(dataSound.getPointsInGraphs());
             int m = Math.toIntExact(dataSound.getNumOfGraphs());
            if(mode.charAt(1) == '1') {
-               parameters.powerSpectrum = CalculateSoundSimilarity.calculateFullSignalFrequencyDomain(powerSpectres, n, m);
+               parameters.powerSpectrum = CalculateSoundSimilarity.calculateAccumulatedPowerSpectrum(powerSpectres, n, m);
            }
             if(mode.charAt(2) == '1') {
                parameters.spectralCentroids = CalculateSoundSimilarity.spectralCentroids(powerSpectres, n, m);
@@ -97,7 +98,7 @@ public class DataSoundService {
         System.out.println("enveolope:::" + newSoundParams.signalEnvelope);
         System.out.println("type::" + dataSound.getType());
         dataSound.setDataSoundParameters(newSoundParams);
-        SoundTypeParameters soundTypeParameters = new SoundTypeParameters(dataSound.getType(), newSoundParams.signalEnvelope,
+        SoundTypeParameters newSoundTypeParams = new SoundTypeParameters(dataSound.getType(), newSoundParams.signalEnvelope,
                 newSoundParams.rootMeanSquareEnergy,newSoundParams.zeroCrossingDensity, newSoundParams.powerSpectrum,
                 newSoundParams.spectralCentroids, newSoundParams.spectralFluxes, newSoundParams.spectralRollOffPoints);
         dataSoundRepository.save(dataSound);
@@ -105,28 +106,35 @@ public class DataSoundService {
             var soundTypeOptional = soundTypeRepository.findByName(dataSound.getType());
             if(soundTypeOptional.isPresent()) {
                 var soundType = soundTypeOptional.get();
-                var soundTypeParametersPresent = soundType.soundTypeParameters;
-                var currentZeroCrossingDensity = soundTypeParametersPresent.getZeroCrossingDensityRaw();
-                soundTypeParametersPresent.UpdateZeroCrossingDensity(currentZeroCrossingDensity, soundTypeParameters.getZeroCrossingDensity(), true);
+                var presentSoundTypeParams = soundType.soundTypeParameters;
+                var currentZeroCrossingDensity = presentSoundTypeParams.getZeroCrossingDensityRaw();
+                presentSoundTypeParams.UpdateZeroCrossingDensity(currentZeroCrossingDensity, newSoundTypeParams.getZeroCrossingDensity(), true);
 
-                for (var param:soundTypeParameters.parametersListInt) {
-                    soundTypeParameters.updateIntParameterValueAdd(param.name);
+                for (int i = 0; i < presentSoundTypeParams.parametersListInt.size();i++) {
+                    var param = presentSoundTypeParams.parametersListInt.get(i);
+                    var value = newSoundTypeParams.parametersListInt.get(i).getParameterValuesRaw();
+                    presentSoundTypeParams.updateParameterValueAdd(param.name, value);
                 }
-                for (var param:soundTypeParametersPresent.parametersListDouble) {
-                    soundTypeParameters.updateDoubleParameterValueAdd(param.name);
+                for (int i = 0; i < presentSoundTypeParams.parametersListDouble.size();i++) {
+                    var param = presentSoundTypeParams.parametersListDouble.get(i);
+                    var value = newSoundTypeParams.parametersListDouble.get(i).getParameterValuesRaw();
+                    presentSoundTypeParams.updateParameterValueAdd(param.name, value);
                 }
 
-                var list = soundType.getDataSounds();
-                cleanSoundData(dataSound);
-                list.add(dataSound);
-                soundTypeParametersRepository.save(soundTypeParametersPresent);
+                //var list = soundType.getDataSounds();
+                //cleanSoundData(dataSound);
+                //list.add(dataSound);
+                soundTypeParametersRepository.saveAndFlush(presentSoundTypeParams);
+                soundTypeRepository.saveAndFlush(soundType);
+                System.out.println("ENVELOPE W::::::::" +presentSoundTypeParams.getParameterWeighted(SoundTypeParameters.ParameterName.SignalEnvelope));
+                System.out.println("ENVELOPE RAW::::::::" +presentSoundTypeParams.getParameterIntRaw(SoundTypeParameters.ParameterName.SignalEnvelope));
             }  else {
                 System.out.println("tuuu1");
-                soundTypeParameters.typeName = dataSound.getType();
+                newSoundTypeParams.typeName = dataSound.getType();
                 var sounds = Arrays.asList(dataSound);
-                SoundType newSoundType = new SoundType(dataSound.getType(), sounds, soundTypeParameters);
-                soundTypeParametersRepository.save(soundTypeParameters);
-                soundTypeRepository.save(newSoundType);
+                SoundType newSoundType = new SoundType(dataSound.getType(), sounds, newSoundTypeParams);
+                soundTypeParametersRepository.saveAndFlush(newSoundTypeParams);
+                soundTypeRepository.saveAndFlush(newSoundType);
                 System.out.println("tuuu1");
             }
         }
@@ -267,10 +275,10 @@ public class DataSoundService {
         typeParams.setZeroCrossingDensity(typeParams.getZeroCrossingDensityWeighted());
 
         for (var param:typeParams.parametersListInt) {
-            typeParams.setParameterInt(param.name);
+            typeParams.setParameter(param.name);
         }
         for (var param:typeParams.parametersListDouble) {
-            typeParams.setParameterDouble(param.name);
+            typeParams.setParameter(param.name);
         }
     }
 
@@ -295,10 +303,10 @@ public class DataSoundService {
                 paramsType.UpdateZeroCrossingDensity(paramsType.getZeroCrossingDensityRaw(), soundParams.getZeroCrossingDensity(), false);
 
                 for (var param:paramsType.parametersListInt) {
-                    paramsType.updateIntParameterValueDelete(param.name);
+                    paramsType.updateParameterValueDelete(param.name);
                 }
                 for (var param:paramsType.parametersListDouble) {
-                    paramsType.updateDoubleParameterValueDelete(param.name);
+                    paramsType.updateParameterValueDelete(param.name);
                 }
                 sounds.remove(dataSound);
                 soundTypeRepository.save(soundType);

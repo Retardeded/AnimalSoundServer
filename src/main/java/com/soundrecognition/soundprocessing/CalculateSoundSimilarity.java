@@ -102,7 +102,7 @@ public class CalculateSoundSimilarity {
         return powerSpectres;
     }
 
-    public static ArrayList<Integer> calculateFullSignalFrequencyDomain(List<double[]> powerSpectres, int n, int m) {
+    public static ArrayList<Integer> calculateAccumulatedPowerSpectrum(List<double[]> powerSpectres, int n, int m) {
         var dataAmplitudeFullSignal = new double[n/2];
 
         for(int j = 0; j < m; j++) {
@@ -191,11 +191,11 @@ public class CalculateSoundSimilarity {
     public static SoundsTimeCoefficients correlationTimeParamsCoefficient(SoundTypeParameters soundTypeParameters, DataSoundParameters newSound)
     {
         double envelopeCoefficient = calculateCoefficient(newSound.signalEnvelope,
-                soundTypeParameters.getParameterIntWeighted(SoundTypeParameters.ParameterName.SignalEnvelope),
-                Math.min(newSound.signalEnvelope.size(),soundTypeParameters.getParameterIntSize(SoundTypeParameters.ParameterName.SignalEnvelope)));
+                (List<Integer>) soundTypeParameters.getParameterWeighted(SoundTypeParameters.ParameterName.SignalEnvelope),
+                Math.min(newSound.signalEnvelope.size(),soundTypeParameters.getParameterSize(SoundTypeParameters.ParameterName.SignalEnvelope)));
         double energyCoefficient = calculateCoefficient(newSound.rootMeanSquareEnergy,
-                soundTypeParameters.getParameterIntWeighted(SoundTypeParameters.ParameterName.RootMeanSquareEnergy),
-                Math.min(newSound.rootMeanSquareEnergy.size(),soundTypeParameters.getParameterIntSize(SoundTypeParameters.ParameterName.RootMeanSquareEnergy)));
+                (List<Integer>) soundTypeParameters.getParameterWeighted(SoundTypeParameters.ParameterName.RootMeanSquareEnergy),
+                Math.min(newSound.rootMeanSquareEnergy.size(),soundTypeParameters.getParameterSize(SoundTypeParameters.ParameterName.RootMeanSquareEnergy)));
         var X = newSound.zeroCrossingDensity;
         var Y = soundTypeParameters.getZeroCrossingDensityWeighted();
         double zeroCrossingCoefficient = X < Y ? X/Y : Y/X;
@@ -206,8 +206,8 @@ public class CalculateSoundSimilarity {
     public static PowerSpectrumCoefficient correlationPowerSpectrumCoefficient(SoundTypeParameters soundTypeParameters, DataSoundParameters newSound)
     {
         double powerSpectrumCoefficient = calculateCoefficient(newSound.powerSpectrum,
-                soundTypeParameters.getParameterIntWeighted(SoundTypeParameters.ParameterName.PowerSpectrum),
-                Math.min(newSound.powerSpectrum.size(),soundTypeParameters.getParameterIntSize(SoundTypeParameters.ParameterName.PowerSpectrum)));
+                (List<Integer>) soundTypeParameters.getParameterWeighted(SoundTypeParameters.ParameterName.PowerSpectrum),
+                Math.min(newSound.powerSpectrum.size(),soundTypeParameters.getParameterSize(SoundTypeParameters.ParameterName.PowerSpectrum)));
         double coefficient = powerSpectrumCoefficient;
 
         return new PowerSpectrumCoefficient(coefficient);
@@ -216,14 +216,14 @@ public class CalculateSoundSimilarity {
     public static SoundsFreqCoefficients correlationFreqParamsCoefficient(SoundTypeParameters soundTypeParameters, DataSoundParameters newSound)
     {
         double centroidsCoefficient = calculateCoefficientDouble(newSound.spectralCentroids,
-                soundTypeParameters.getParameterDoubleWeighted(SoundTypeParameters.ParameterName.SpectralCentroids),
-                Math.min(newSound.spectralCentroids.size(),soundTypeParameters.getParameterDoubleSize(SoundTypeParameters.ParameterName.SpectralCentroids)));
+                (List<Double>) soundTypeParameters.getParameterWeighted(SoundTypeParameters.ParameterName.SpectralCentroids),
+                Math.min(newSound.spectralCentroids.size(),soundTypeParameters.getParameterSize(SoundTypeParameters.ParameterName.SpectralCentroids)));
         double fluxesCoefficient = calculateCoefficient(newSound.spectralFluxes,
-                soundTypeParameters.getParameterIntWeighted(SoundTypeParameters.ParameterName.SpectralFluxes),
-                Math.min(newSound.spectralFluxes.size(),soundTypeParameters.getParameterDoubleSize(SoundTypeParameters.ParameterName.SpectralFluxes)));
+                (List<Integer>) soundTypeParameters.getParameterWeighted(SoundTypeParameters.ParameterName.SpectralFluxes),
+                Math.min(newSound.spectralFluxes.size(),soundTypeParameters.getParameterSize(SoundTypeParameters.ParameterName.SpectralFluxes)));
         double rollOffCoefficient = calculateCoefficientDouble(newSound.spectralRollOffPoints,
-                soundTypeParameters.getParameterDoubleWeighted(SoundTypeParameters.ParameterName.SpectralRollOffPoints),
-                Math.min(newSound.spectralRollOffPoints.size(),soundTypeParameters.getParameterDoubleSize(SoundTypeParameters.ParameterName.SpectralRollOffPoints)));
+                (List<Double>) soundTypeParameters.getParameterWeighted(SoundTypeParameters.ParameterName.SpectralRollOffPoints),
+                Math.min(newSound.spectralRollOffPoints.size(),soundTypeParameters.getParameterSize(SoundTypeParameters.ParameterName.SpectralRollOffPoints)));
         return new SoundsFreqCoefficients(centroidsCoefficient, fluxesCoefficient , rollOffCoefficient);
     }
 

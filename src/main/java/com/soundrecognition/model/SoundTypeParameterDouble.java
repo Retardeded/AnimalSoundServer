@@ -12,7 +12,7 @@ import java.util.List;
 @Setter
 @Getter
 @Entity
-public class SoundTypeParameterDouble implements Serializable {
+public class SoundTypeParameterDouble implements Serializable, SoundTypeParameter {
     public SoundTypeParameterDouble(List<Double> parameterValues, List<Integer> parameterValuesCount, SoundTypeParameters.ParameterName name) {
         this.parameterValues = parameterValues;
         this.parameterValuesCount = parameterValuesCount;
@@ -43,33 +43,35 @@ public class SoundTypeParameterDouble implements Serializable {
         return parameterValues;
     }
 
-    public void setParameterValues(List<Double> parameterValues) {
-        this.parameterValues = parameterValues;
+    public void setParameterValues(List<?> parameterValues) {
+        this.parameterValues = (List<Double>) parameterValues;
     }
 
     @ElementCollection
     @Column
     public List<Integer> parameterValuesCount;
 
-    public void calculateNewParamAverageAdd(List<Double> parametersNew) {
+    public void calculateNewParamAverageAdd(List<?> parametersNew) {
         int minSize = Math.min(parametersNew.size(), parameterValues.size());
+        var parametersNewDouble = (List<Double>) parametersNew;
         for(int i = 0; i < minSize; i++) {
-            parameterValues.set(i, (parameterValues.get(i) + parametersNew.get(i)));
+            parameterValues.set(i, (parameterValues.get(i) + parametersNewDouble.get(i)));
             parameterValuesCount.set(i, parameterValuesCount.get(i)+1);
         }
         if(minSize == parameterValues.size()) {
             int maxSize = Math.max(parametersNew.size(), parameterValues.size());
             for(int i = minSize; i < maxSize;i++) {
-                parameterValues.add(parametersNew.get(i));
+                parameterValues.add(parametersNewDouble.get(i));
                 parameterValuesCount.add(1);
             }
         }
     }
 
-    public void calculateNewParamAverageDelete(List<Double> parametersSound) {
-        int minSize = Math.min(parameterValues.size(), parametersSound.size());
+    public void calculateNewParamAverageDelete(List<?> parametersToRemove) {
+        int minSize = Math.min(parameterValues.size(), parametersToRemove.size());
+        var parametersNewDouble = (List<Double>) parametersToRemove;
         for(int i = 0; i < minSize; i++) {
-            parameterValues.set(i, ((parameterValues.get(i)  - parametersSound.get(i) )));
+            parameterValues.set(i, ((parameterValues.get(i)  - parametersNewDouble.get(i) )));
             parameterValuesCount.set(i, parameterValuesCount.get(i)-1);
         }
 
@@ -77,6 +79,10 @@ public class SoundTypeParameterDouble implements Serializable {
             parameterValues.remove(parameterValuesCount.size()-1);
             parameterValuesCount.remove(parameterValuesCount.size()-1);
         }
+    }
+
+    public Integer getParameterValuesCount() {
+        return parameterValuesCount.size();
     }
 
 }

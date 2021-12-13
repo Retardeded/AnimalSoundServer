@@ -80,16 +80,12 @@ public class SoundTypeParameters implements Serializable {
         return new SoundTypeParameterDouble(valuesList, new ArrayList<Integer>(Collections.nCopies(valuesList.size(), 1)), name);
     }
 
-    public SoundTypeParameterInt getParamIntByName(ParameterName name) {
+    public SoundTypeParameter getParamByName(ParameterName name) {
         for (var param:parametersListInt
         ) {
             if(param.name.equals(name))
                 return param;
         }
-        return null;
-    }
-
-    public SoundTypeParameterDouble getParamDoubleByName(ParameterName name) {
         for (var param:parametersListDouble
         ) {
             if(param.name.equals(name))
@@ -97,52 +93,37 @@ public class SoundTypeParameters implements Serializable {
         }
         return null;
     }
-    public void setParameterInt(ParameterName name) {
-        var param = getParamIntByName(name);
+
+
+    public void setParameter(ParameterName name) {
+        var param = getParamByName(name);
         param.setParameterValues(param.getParameterValuesWeighted());
     }
 
-    public void updateIntParameterValueAdd(ParameterName name) {
-        var param = getParamIntByName(name);
-        param.calculateNewParamAverageAdd(param.getParameterValuesRaw());
+    public void updateParameterValueAdd(ParameterName name, List<?> value) {
+        var param = getParamByName(name);
+        param.calculateNewParamAverageAdd(value);
+        System.out.println("ENVELOP3:::" + param.getParameterValuesWeighted());
     }
 
-    public void updateIntParameterValueDelete(ParameterName name) {
-        var param = getParamIntByName(name);
+    public void updateParameterValueDelete(ParameterName name) {
+        var param = getParamByName(name);
         param.calculateNewParamAverageDelete(param.getParameterValuesRaw());
     }
 
-    public List<Integer> getParameterIntWeighted(ParameterName name) {
-        var param = getParamIntByName(name);
+    public List<?> getParameterWeighted(ParameterName name) {
+        var param = getParamByName(name);
         return param.getParameterValuesWeighted();
     }
 
-    public Integer getParameterIntSize(ParameterName name) {
-        var param = getParamIntByName(name);
-        return param.getParameterValuesCount().size();
+    public List<?> getParameterIntRaw(ParameterName name) {
+        var param = getParamByName(name);
+        return param.getParameterValuesRaw();
     }
 
-    public void setParameterDouble(ParameterName name) {
-        var param = getParamDoubleByName(name);
-        param.setParameterValues(param.getParameterValuesWeighted());
-    }
 
-    public void updateDoubleParameterValueAdd(ParameterName name) {
-        var param = getParamDoubleByName(name);
-        param.calculateNewParamAverageAdd(param.getParameterValuesRaw());
-    }
-
-    public void updateDoubleParameterValueDelete(ParameterName name) {
-        var param = getParamDoubleByName(name);
-        param.calculateNewParamAverageDelete(param.getParameterValuesRaw());
-    }
-
-    public List<Double> getParameterDoubleWeighted(ParameterName name) {
-        var param = getParamDoubleByName(name);
-        return param.getParameterValuesWeighted();
-    }
-    public Integer getParameterDoubleSize(ParameterName name) {
-        var param = getParamDoubleByName(name);
-        return param.getParameterValuesCount().size();
+    public Integer getParameterSize(ParameterName name) {
+        var param = getParamByName(name);
+        return param.getParameterValuesCount();
     }
 }
