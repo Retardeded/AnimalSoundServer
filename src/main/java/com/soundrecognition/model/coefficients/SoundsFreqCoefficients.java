@@ -3,12 +3,12 @@ package com.soundrecognition.model.coefficients;
 public class SoundsFreqCoefficients implements CorrelationCoefficient {
     public double centroidsCoefficient;
     public double fluxesCoefficient;
-    public double rollOffPointsCoeficient;
+    public double rollOffPointsCoefficient;
 
-    public SoundsFreqCoefficients(double centroidsCoefficient, double fluxesCoefficient, double rollOffPointsCoeficient) {
+    public SoundsFreqCoefficients(double centroidsCoefficient, double fluxesCoefficient, double rollOffPointsCoefficient) {
         this.centroidsCoefficient = centroidsCoefficient;
         this.fluxesCoefficient = fluxesCoefficient;
-        this.rollOffPointsCoeficient = rollOffPointsCoeficient;
+        this.rollOffPointsCoefficient = rollOffPointsCoefficient;
     }
 
     @Override
@@ -16,13 +16,13 @@ public class SoundsFreqCoefficients implements CorrelationCoefficient {
         return "SoundsCoefficients{" +
                 "centroidsCoefficient=" + centroidsCoefficient +
                 ", fluxesCoefficient=" + fluxesCoefficient +
-                ", rollOffPointsCoefficient=" + rollOffPointsCoeficient +
+                ", rollOffPointsCoefficient=" + rollOffPointsCoefficient +
                 ", mergedCoefficient=" + getMergedCoefficient() +
                 '}';
     }
 
     @Override
     public double getMergedCoefficient() {
-        return centroidsCoefficient * 0.4 + fluxesCoefficient * 0.4 + rollOffPointsCoeficient * 0.2;
+        return centroidsCoefficient * 0.4 + fluxesCoefficient * 0.4 + rollOffPointsCoefficient * 0.2;
     }
 }
