@@ -150,7 +150,7 @@ public class DataSoundService {
         return dataSound;
     }
 
-    private DataSound cutSoundNoise(DataSound dataSoundRaw) {
+    public DataSound cutSoundNoise(DataSound dataSoundRaw) {
         var rootMeanSquareEnergy = CalculateSoundSimilarity.rootMeanSquareEnergy(dataSoundRaw);
         int minIndex = -1;
         int maxIndex = -1;
