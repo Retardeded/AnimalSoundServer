@@ -291,12 +291,8 @@ public class DataSoundService {
         }
     }
 
-    public Optional<DataSound> getDataSound(Integer id) throws NotFoundException {
-        Optional<DataSound> data = dataSoundRepository.findById(id);
-
-        if (data.isEmpty())
-            throw new NotFoundException("Product not found");
-
+    public Optional<DataSound> getDataSound(String title) throws NotFoundException {
+        Optional<DataSound> data = dataSoundRepository.findTopByTitle(title);
         return data;
     }
 

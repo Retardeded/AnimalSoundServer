@@ -61,9 +61,19 @@ public class DataSoundController {
     }
 
     @PostMapping
-    public DataSound post(@RequestBody DataSound dataSound) {
-        dataSound = sounds.save(dataSound);
-        return (dataSound);
+    public ResponseEntity<DataSound> post(@RequestBody DataSound dataSound) throws NotFoundException {
+        var data = getDataSound(dataSound.getTitle());
+        if (data.isPresent()) {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
+        } else {
+            sounds.save(dataSound);
+
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(dataSound);
+        }
     }
 
     @PostMapping("/checkTime")
@@ -87,8 +97,8 @@ public class DataSoundController {
         return list;
     }
 
-    private Optional<DataSound> getDataSound(String id) throws NotFoundException {
-        return sounds.getDataSound(Integer.parseInt(id));
+    private Optional<DataSound> getDataSound(String title) throws NotFoundException {
+        return sounds.getDataSound(title);
     }
 
 }
