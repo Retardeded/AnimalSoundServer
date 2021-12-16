@@ -20,7 +20,6 @@ import java.util.*;
 
 @Service
 public class DataSoundService {
-
     private final DataSoundRepository dataSoundRepository;
     private final SoundTypeRepository soundTypeRepository;
     private final SoundTypeParametersRepository soundTypeParametersRepository;
@@ -109,7 +108,7 @@ public class DataSoundService {
             return dataSound;
 
         DataSoundParameters newSoundParams = getAllDataSoundParameters(dataSound);
-        System.out.println("enveolope:::" + newSoundParams.signalEnvelope);
+        System.out.println("energy:::" + newSoundParams.rootMeanSquareEnergy);
         dataSound.setDataSoundParameters(newSoundParams);
         SoundTypeParameters newSoundTypeParams = new SoundTypeParameters(dataSound.getType(), newSoundParams.signalEnvelope,
                 newSoundParams.rootMeanSquareEnergy,newSoundParams.zeroCrossingDensity, newSoundParams.powerSpectrum,
@@ -309,20 +308,23 @@ public class DataSoundService {
             if(soundType.getDataSounds().size() > 1) {
                 var sounds = soundType.getDataSounds();
                 var soundParams = dataSound.getDataSoundParameters();
+                SoundTypeParameters oldSoundTypeParams = new SoundTypeParameters(dataSound.getType(), soundParams.signalEnvelope,
+                        soundParams.rootMeanSquareEnergy,soundParams.zeroCrossingDensity, soundParams.powerSpectrum,
+                        soundParams.spectralCentroids, soundParams.spectralFluxes, soundParams.spectralRollOffPoints);
 
                 paramsType.UpdateZeroCrossingDensity(paramsType.getZeroCrossingDensityRaw(), soundParams.getZeroCrossingDensity(), false);
 
                 for (var param:paramsType.parametersListInt) {
-                    paramsType.updateParameterValueDelete(param.name);
+                    paramsType.updateParameterValueDelete(param.name, oldSoundTypeParams.getParameterWeighted(param.name));
                 }
                 for (var param:paramsType.parametersListDouble) {
-                    paramsType.updateParameterValueDelete(param.name);
+                    paramsType.updateParameterValueDelete(param.name, oldSoundTypeParams.getParameterWeighted(param.name));
                 }
                 sounds.remove(dataSound);
                 soundTypeRepository.save(soundType);
-                //soundTypeParametersRepository.delete(paramsType);
-            } else {
                 soundTypeParametersRepository.delete(paramsType);
+            } else {
+                soundTypeRepository.delete(soundType);
                 //soundTypeRepository.delete(soundType);
                 }
             }

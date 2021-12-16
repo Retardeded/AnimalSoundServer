@@ -103,9 +103,9 @@ public class SoundTypeParameters implements Serializable {
         param.calculateNewParamAverageAdd(value);
     }
 
-    public void updateParameterValueDelete(ParameterName name) {
+    public void updateParameterValueDelete(ParameterName name, List<?> value) {
         var param = getParamByName(name);
-        param.calculateNewParamAverageDelete(param.getParameterValuesRaw());
+        param.calculateNewParamAverageDelete(value);
     }
 
     public List<?> getParameterWeighted(ParameterName name) {
