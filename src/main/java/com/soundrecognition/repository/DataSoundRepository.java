@@ -10,5 +10,5 @@ import java.util.Optional;
 @Repository
 public interface DataSoundRepository extends JpaRepository<DataSound, Integer> {
     Optional<DataSound> findById(Integer id);
-    Optional<DataSound> findTopByTitle(String title);
+    Optional<DataSound> findByTitle(String title);
 }

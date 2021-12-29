@@ -284,15 +284,15 @@ public class DataSoundService {
         typeParams.setZeroCrossingDensity(typeParams.getZeroCrossingDensityWeighted());
 
         for (var param:typeParams.parametersListInt) {
-            typeParams.setParameter(param.name);
+            typeParams.setParameterToWeightedValues(param.name);
         }
         for (var param:typeParams.parametersListDouble) {
-            typeParams.setParameter(param.name);
+            typeParams.setParameterToWeightedValues(param.name);
         }
     }
 
     public Optional<DataSound> getDataSound(String title) throws NotFoundException {
-        Optional<DataSound> data = dataSoundRepository.findTopByTitle(title);
+        Optional<DataSound> data = dataSoundRepository.findByTitle(title);
         return data;
     }
 

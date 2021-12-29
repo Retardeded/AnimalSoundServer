@@ -92,32 +92,25 @@ public class SoundTypeParameters implements Serializable {
         return null;
     }
 
-
-    public void setParameter(ParameterName name) {
+    public void setParameterToWeightedValues(ParameterName name) {
         var param = getParamByName(name);
-        param.setParameterValues(param.getParameterValuesWeighted());
+        param.setParameterToWeightedValues();
     }
 
     public void updateParameterValueAdd(ParameterName name, List<?> value) {
         var param = getParamByName(name);
-        param.calculateNewParamAverageAdd(value);
+        param.updateParameterValueAdd(value);
     }
 
     public void updateParameterValueDelete(ParameterName name, List<?> value) {
         var param = getParamByName(name);
-        param.calculateNewParamAverageDelete(value);
+        param.updateParameterValueDelete(value);
     }
 
     public List<?> getParameterWeighted(ParameterName name) {
         var param = getParamByName(name);
         return param.getParameterValuesWeighted();
     }
-
-    public List<?> getParameterIntRaw(ParameterName name) {
-        var param = getParamByName(name);
-        return param.getParameterValuesRaw();
-    }
-
 
     public Integer getParameterSize(ParameterName name) {
         var param = getParamByName(name);

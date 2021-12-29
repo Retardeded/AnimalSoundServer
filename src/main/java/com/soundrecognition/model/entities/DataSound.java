@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
-public class DataSound implements Comparator<DataPoint> {
+public class DataSound {
 
     @Id
     @Column
@@ -58,17 +58,12 @@ public class DataSound implements Comparator<DataPoint> {
     @Column
     private Long numOfGraphs;
 
-    //@JoinColumn()
-    //@OneToOne(cascade = CascadeType.REMOVE, orphanRemoval = true)
-    //private DataSoundParameters dataSoundParameters;
-
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private DataSoundParameters dataSoundParameters;
 
     public void setTimeDomainPoints(List<DataPoint> dataPoints) {
         this.timeDomainPoints = dataPoints;
     }
-
 
     public List<DataPoint> getTimeDomainPoints() {
         return timeDomainPoints;
@@ -77,15 +72,4 @@ public class DataSound implements Comparator<DataPoint> {
     @ElementCollection
     @Column
     private List<DataPoint> timeDomainPoints;
-
-    @Override
-    public int compare(DataPoint a, DataPoint b) {
-        var aY = Math.abs(a.y);
-        var bY = Math.abs(b.y);
-        if (aY > bY)
-            return -1; // highest value first
-        if (aY == bY)
-            return 0;
-        return 1;
-    }
 }

@@ -43,15 +43,15 @@ public class SoundTypeParameterDouble implements Serializable, SoundTypeParamete
         return parameterValues;
     }
 
-    public void setParameterValues(List<?> parameterValues) {
-        this.parameterValues = (List<Double>) parameterValues;
+    public void setParameterToWeightedValues() {
+        this.parameterValues = getParameterValuesWeighted();
     }
 
     @ElementCollection
     @Column
     public List<Integer> parameterValuesCount;
 
-    public void calculateNewParamAverageAdd(List<?> parametersNew) {
+    public void updateParameterValueAdd(List<?> parametersNew) {
         int minSize = Math.min(parametersNew.size(), parameterValues.size());
         var parametersNewDouble = (List<Double>) parametersNew;
         for(int i = 0; i < minSize; i++) {
@@ -67,7 +67,7 @@ public class SoundTypeParameterDouble implements Serializable, SoundTypeParamete
         }
     }
 
-    public void calculateNewParamAverageDelete(List<?> parametersToRemove) {
+    public void updateParameterValueDelete(List<?> parametersToRemove) {
         int minSize = Math.min(parameterValues.size(), parametersToRemove.size());
         var parametersNewDouble = (List<Double>) parametersToRemove;
         for(int i = 0; i < minSize; i++) {

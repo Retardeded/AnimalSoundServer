@@ -5,8 +5,8 @@ import java.util.List;
 public interface SoundTypeParameter {
     List<?> getParameterValuesRaw();
     List<?> getParameterValuesWeighted();
-    void setParameterValues(List<?> parameterValues);
-    void calculateNewParamAverageAdd(List<?> parametersNew);
-    void calculateNewParamAverageDelete(List<?> parametersToRemove);
+    void setParameterToWeightedValues();
+    void updateParameterValueAdd(List<?> parametersNew);
+    void updateParameterValueDelete(List<?> parametersToRemove);
     Integer getParameterValuesCount();
 }

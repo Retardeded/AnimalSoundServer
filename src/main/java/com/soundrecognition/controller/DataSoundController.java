@@ -1,6 +1,7 @@
 package com.soundrecognition.controller;
 
 
+import com.soundrecognition.model.ServerMessage;
 import com.soundrecognition.model.coefficients.PowerSpectrumCoefficient;
 import com.soundrecognition.model.coefficients.SoundsFreqCoefficients;
 import com.soundrecognition.model.coefficients.SoundsTimeCoefficients;
@@ -27,12 +28,6 @@ public class DataSoundController {
         this.sounds = sounds;
     }
 
-
-    //@GetMapping
-    //public ResponseEntity<List<DataSound>> get() {
-    //    return ResponseEntity.ok(sounds.getDataSounds());
-    //}
-
     @GetMapping("/soundsInfo")
     public ResponseEntity<List<DataSound>> getSoundsInfoOnly() {
         return ResponseEntity.ok(sounds.getSoundInfoOnly());
@@ -51,13 +46,16 @@ public class DataSoundController {
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<Object> delete(@PathVariable String id) throws NotFoundException {
+    public ResponseEntity<ServerMessage> delete(@PathVariable String id) throws NotFoundException {
         var data = getDataSound(id);
         if (data.isPresent()) {
             sounds.delete(data.get());
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return  ResponseEntity.ok(new ServerMessage("Sound deleted"));
+        } else {
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(null);
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PostMapping
@@ -69,7 +67,6 @@ public class DataSoundController {
                     .body(null);
         } else {
             sounds.save(dataSound);
-
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body(dataSound);
