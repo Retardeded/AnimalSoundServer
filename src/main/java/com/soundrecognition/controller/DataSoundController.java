@@ -42,7 +42,10 @@ public class DataSoundController {
     @GetMapping("{id}")
     public ResponseEntity<DataSound> get(@PathVariable String id) throws NotFoundException {
         var data = getDataSound(id);
-        return data.map(ResponseEntity::ok).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return data.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(null));
+        //return data.map(ResponseEntity::ok).orElseGet(() -> new ResponseEntity<>(HttpStatus.FORBIDDEN));
     }
 
     @DeleteMapping("{id}")
