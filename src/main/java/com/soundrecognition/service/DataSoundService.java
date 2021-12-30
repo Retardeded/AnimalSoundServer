@@ -24,8 +24,8 @@ public class DataSoundService {
     private final SoundTypeRepository soundTypeRepository;
     private final SoundTypeParametersRepository soundTypeParametersRepository;
     final int topListSize = 3;
-    final int minSignalEnvelope = 200;
-    final int minRootMeanSquareEnergy = 90;
+    final int minNumOfGraphs = 5;
+    final int minRootMeanSquareEnergy = 100;
     final String noiseTitle = "It's background noise";
 
     DataSoundService(DataSoundRepository dataSoundRepository, SoundTypeRepository soundTypeRepository, SoundTypeParametersRepository soundTypeParametersRepository) {
@@ -135,13 +135,12 @@ public class DataSoundService {
 
                 cleanSoundData(dataSound);
                 soundType.getDataSounds().add(dataSound);
-                soundTypeParametersRepository.saveAndFlush(presentSoundTypeParams);
+                soundTypeParametersRepository.save(presentSoundTypeParams);
             }  else {
                 newSoundTypeParams.typeName = dataSound.getType();
                 var sounds = Arrays.asList(dataSound);
                 SoundType newSoundType = new SoundType(dataSound.getType(), sounds, newSoundTypeParams);
-                soundTypeParametersRepository.saveAndFlush(newSoundTypeParams);
-                soundTypeRepository.saveAndFlush(newSoundType);
+                soundTypeRepository.save(newSoundType);
             }
         }
 
@@ -159,8 +158,12 @@ public class DataSoundService {
                 minIndex = i;
             }
             if(minIndex != -1 && rootMeanSquareEnergy[i] < minRootMeanSquareEnergy) {
-                maxIndex = i;
-                break;
+                if(i - minIndex >= minNumOfGraphs) {
+                    maxIndex = i;
+                    break;
+                } else {
+                    minIndex = -1;
+                }
             }
 
         }
@@ -186,7 +189,7 @@ public class DataSoundService {
     public List<Pair<SoundType, SoundsFreqCoefficients>> getMostSimilarSoundsFreqDomain(DataSound newSound) {
         var typesParams = soundTypeRepository.findAll();
         var parameters = new DataSoundParameters();
-        var powerSpectres = CalculateSoundSimilarity.calculatePowerSpectres(newSound);
+        var powerSpectres = CalculateSoundSimilarity.calculatePowerSpectres(cutSoundNoise(newSound));
         var newSoundParam = getDataSoundFrequencyParameters(powerSpectres, parameters);
         ArrayList<Pair<SoundType, CorrelationCoefficient>> mostSimilar = new ArrayList<>();
         ArrayList<Pair<SoundType, SoundsFreqCoefficients>> mostSimilarType = new ArrayList<>();
@@ -204,7 +207,7 @@ public class DataSoundService {
     public List<Pair<SoundType, PowerSpectrumCoefficient>> getMostSimilarSoundsPowerSpectrum(DataSound newSound) {
         var typesParams = soundTypeRepository.findAll();
         var parameters = new DataSoundParameters();
-        var powerSpectres = CalculateSoundSimilarity.calculatePowerSpectres(newSound);
+        var powerSpectres = CalculateSoundSimilarity.calculatePowerSpectres(cutSoundNoise(newSound));
         var newSoundParam = getDataSoundPowerSpectrumParameter(powerSpectres, parameters);
         ArrayList<Pair<SoundType, CorrelationCoefficient>> mostSimilar = new ArrayList<>();
         ArrayList<Pair<SoundType, PowerSpectrumCoefficient>> mostSimilarType = new ArrayList<>();
@@ -224,7 +227,6 @@ public class DataSoundService {
         for (int i = 0; i < typesParams.size(); i++) {
             var params = typesParams.get(i).soundTypeParameters;
             var cor = CalculateSoundSimilarity.correlationTimeParamsCoefficient(params, newSoundParam);
-            cleanSoundTypeData(typesParams.get(i));
             mostSimilar.add(Pair.of(typesParams.get(i), cor));
         }
     }
@@ -233,7 +235,6 @@ public class DataSoundService {
         for (int i = 0; i < typesParams.size(); i++) {
             var params = typesParams.get(i).soundTypeParameters;
             var cor = CalculateSoundSimilarity.correlationPowerSpectrumCoefficient(params, newSoundParam);
-            cleanSoundTypeData(typesParams.get(i));
             mostSimilar.add(Pair.of(typesParams.get(i), cor));
         }
     }
@@ -242,7 +243,6 @@ public class DataSoundService {
         for (int i = 0; i < typesParams.size(); i++) {
             var params = typesParams.get(i).soundTypeParameters;
             var cor = CalculateSoundSimilarity.correlationFreqParamsCoefficient(params, newSoundParam);
-            cleanSoundTypeData(typesParams.get(i));
             mostSimilar.add(Pair.of(typesParams.get(i), cor));
         }
     }
@@ -250,7 +250,7 @@ public class DataSoundService {
     public List<Pair<SoundType, SoundsTimeCoefficients>> getMostSimilarSoundsTimeDomain(DataSound newSound) {
         var typesParams = soundTypeRepository.findAll();
         var parameters = new DataSoundParameters();
-        var newSoundParam = getDataSoundTimeParameters(newSound, parameters);
+        var newSoundParam = getDataSoundTimeParameters(cutSoundNoise(newSound), parameters);
         ArrayList<Pair<SoundType, CorrelationCoefficient>> mostSimilar = new ArrayList<>();
         ArrayList<Pair<SoundType, SoundsTimeCoefficients>> mostSimilarType = new ArrayList<>();
         makeCorrelationListT(typesParams, newSoundParam, mostSimilar);
@@ -291,7 +291,7 @@ public class DataSoundService {
         }
     }
 
-    public Optional<DataSound> getDataSound(String title) throws NotFoundException {
+    public Optional<DataSound> getDataSound(String title) {
         Optional<DataSound> data = dataSoundRepository.findByTitle(title);
         return data;
     }
@@ -318,14 +318,11 @@ public class DataSoundService {
                 }
                 sounds.remove(dataSound);
                 soundTypeRepository.save(soundType);
-                soundTypeParametersRepository.delete(paramsType);
             } else {
                 soundTypeRepository.delete(soundType);
-                //soundTypeRepository.delete(soundType);
                 }
             }
         dataSoundRepository.delete(dataSound);
-        //dataSoundParametersRepository.delete(dataSound.getDataSoundParameters());
     }
 
 }

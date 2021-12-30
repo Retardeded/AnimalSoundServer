@@ -78,22 +78,19 @@ public class DataSoundController {
 
     @PostMapping("/checkTime")
     public List<Pair<SoundType, SoundsTimeCoefficients>> checkSoundTimeDomain(@RequestBody DataSound dataSound) {
-        DataSound dataSoundCut = sounds.cutSoundNoise(dataSound);
-        var list = sounds.getMostSimilarSoundsTimeDomain(dataSoundCut);
+        var list = sounds.getMostSimilarSoundsTimeDomain(dataSound);
         return list;
     }
 
     @PostMapping("/checkPowerSpectrum")
     public List<Pair<SoundType, PowerSpectrumCoefficient>> checkSoundPowerSpectrum(@RequestBody DataSound dataSound) {
-        DataSound dataSoundCut = sounds.cutSoundNoise(dataSound);
-        var list = sounds.getMostSimilarSoundsPowerSpectrum(dataSoundCut);
+        var list = sounds.getMostSimilarSoundsPowerSpectrum(dataSound);
         return list;
     }
 
     @PostMapping("/checkFrequency")
     public List<Pair<SoundType, SoundsFreqCoefficients>> checkSoundFrequencyDomain(@RequestBody DataSound dataSound) {
-        DataSound dataSoundCut = sounds.cutSoundNoise(dataSound);
-        var list = sounds.getMostSimilarSoundsFreqDomain(dataSoundCut);
+        var list = sounds.getMostSimilarSoundsFreqDomain(dataSound);
         return list;
     }
 
