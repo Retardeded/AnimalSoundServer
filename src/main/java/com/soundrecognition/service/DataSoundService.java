@@ -12,7 +12,6 @@ import com.soundrecognition.repository.DataSoundRepository;
 import com.soundrecognition.repository.SoundTypeParametersRepository;
 import com.soundrecognition.repository.SoundTypeRepository;
 import com.soundrecognition.soundprocessing.CalculateSoundSimilarity;
-import javassist.NotFoundException;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
@@ -82,7 +81,7 @@ public class DataSoundService {
         var zeroCrossingDensity = CalculateSoundSimilarity.zeroCrossingDensity(dataSound);
         var rootMeanSquareEnergy = CalculateSoundSimilarity.rootMeanSquareEnergy(dataSound);
         var signalEnvelope = CalculateSoundSimilarity.signalEnvelope(dataSound);
-        parameters.zeroCrossingDensity = zeroCrossingDensity;
+        parameters.zeroCrossingDensity =  Arrays.asList(zeroCrossingDensity);
         parameters.rootMeanSquareEnergy = Arrays.asList(rootMeanSquareEnergy);
         parameters.signalEnvelope = Arrays.asList(signalEnvelope);
         return parameters;
@@ -119,8 +118,6 @@ public class DataSoundService {
             if(soundTypeOptional.isPresent()) {
                 var soundType = soundTypeOptional.get();
                 var presentSoundTypeParams = soundType.soundTypeParameters;
-                var currentZeroCrossingDensity = presentSoundTypeParams.getZeroCrossingDensityRaw();
-                presentSoundTypeParams.UpdateZeroCrossingDensity(currentZeroCrossingDensity, newSoundTypeParams.getZeroCrossingDensity(), true);
 
                 for (int i = 0; i < presentSoundTypeParams.parametersListInt.size();i++) {
                     var param = presentSoundTypeParams.parametersListInt.get(i);
@@ -281,8 +278,6 @@ public class DataSoundService {
         cleanSoundTypeData(soundType);
         var typeParams = soundType.soundTypeParameters;
 
-        typeParams.setZeroCrossingDensity(typeParams.getZeroCrossingDensityWeighted());
-
         for (var param:typeParams.parametersListInt) {
             typeParams.setParameterToWeightedValues(param.name);
         }
@@ -307,8 +302,6 @@ public class DataSoundService {
                 SoundTypeParameters oldSoundTypeParams = new SoundTypeParameters(dataSound.getType(), soundParams.signalEnvelope,
                         soundParams.rootMeanSquareEnergy,soundParams.zeroCrossingDensity, soundParams.powerSpectrum,
                         soundParams.spectralCentroids, soundParams.spectralFluxes, soundParams.spectralRollOffPoints);
-
-                paramsType.UpdateZeroCrossingDensity(paramsType.getZeroCrossingDensityRaw(), soundParams.getZeroCrossingDensity(), false);
 
                 for (var param:paramsType.parametersListInt) {
                     paramsType.updateParameterValueDelete(param.name, oldSoundTypeParams.getParameterWeighted(param.name));

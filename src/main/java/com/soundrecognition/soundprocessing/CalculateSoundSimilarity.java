@@ -67,20 +67,29 @@ public class CalculateSoundSimilarity {
         return (int) root;
     }
 
-    public static int zeroCrossingDensity(DataSound sound)
+    public static Integer[] zeroCrossingDensity(DataSound sound)
     {
-        var timePoints = sound.getTimeDomainPoints();
+        int n = Math.toIntExact(sound.getNumOfGraphs());
+        int m = Math.toIntExact(sound.getPointsInGraphs());
+        Integer[] zeroCrossingArray = new Integer[n];
 
-        int numCrossing = 0;
-        for (int i = 0; i < timePoints.size()-1; i++)
-        {
-            if ((timePoints.get(i).y > 0 && timePoints.get(i+1).y <= 0) ||
-                    (timePoints.get(i).y < 0 && timePoints.get(i+1).y >= 0))
+        for(int i = 0; i < n; i++) {
+            int numCrossing = 0;
+            var singleGraph = sound.getTimeDomainPoints().subList(i*m, (i+1)*m);
+
+            for (int j = 0; j < singleGraph.size()-1; j++)
             {
-                numCrossing++;
+                if ((singleGraph.get(j).y > 0 && singleGraph.get(j+1).y <= 0) ||
+                        (singleGraph.get(j).y < 0 && singleGraph.get(j+1).y >= 0))
+                {
+                    numCrossing++;
+                }
             }
+            var rms = rmsValue(singleGraph, singleGraph.size());
+            zeroCrossingArray[i] = numCrossing;
         }
-        return (int) (numCrossing / sound.getNumOfGraphs());
+
+        return zeroCrossingArray;
     }
 
     public static List<double[]> calculatePowerSpectres(DataSound dataSound) {
@@ -202,11 +211,11 @@ public class CalculateSoundSimilarity {
         double energyCoefficient = calculateCoefficient(newSound.rootMeanSquareEnergy,
                 (List<Integer>) soundTypeParameters.getParameterWeighted(SoundTypeParameters.ParameterName.RootMeanSquareEnergy),
                 Math.min(newSound.rootMeanSquareEnergy.size(),soundTypeParameters.getParameterSize(SoundTypeParameters.ParameterName.RootMeanSquareEnergy)));
-        var X = newSound.zeroCrossingDensity;
-        var Y = soundTypeParameters.getZeroCrossingDensityWeighted();
-        double zeroCrossingCoefficient = X < Y ? X/Y : Y/X;
+        double crossingCoefficient = calculateCoefficient(newSound.zeroCrossingDensity,
+                (List<Integer>) soundTypeParameters.getParameterWeighted(SoundTypeParameters.ParameterName.ZeroCrossingDensity),
+                Math.min(newSound.zeroCrossingDensity.size(),soundTypeParameters.getParameterSize(SoundTypeParameters.ParameterName.ZeroCrossingDensity)));
 
-        return new SoundsTimeCoefficients(envelopeCoefficient, energyCoefficient, zeroCrossingCoefficient);
+        return new SoundsTimeCoefficients(envelopeCoefficient, energyCoefficient, crossingCoefficient);
     }
 
     public static PowerSpectrumCoefficient correlationPowerSpectrumCoefficient(SoundTypeParameters soundTypeParameters, DataSoundParameters newSound)

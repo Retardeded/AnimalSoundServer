@@ -18,6 +18,7 @@ public class SoundTypeParameters implements Serializable {
     public enum ParameterName {
         SignalEnvelope,
         RootMeanSquareEnergy,
+        ZeroCrossingDensity,
         PowerSpectrum,
         SpectralCentroids,
         SpectralFluxes,
@@ -38,6 +39,7 @@ public class SoundTypeParameters implements Serializable {
     @OneToMany(cascade = {CascadeType.ALL})
     public List<SoundTypeParameterDouble> parametersListDouble = new ArrayList<>();
 
+    /*
     private Integer zeroCrossingDensity;
 
     public Integer getZeroCrossingDensityWeighted() {
@@ -57,14 +59,15 @@ public class SoundTypeParameters implements Serializable {
         }
     }
 
+     */
+
     public Integer zeroCrossingDensityCount;
 
-    public SoundTypeParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, Integer zeroCrossingDensity, List<Integer> powerSpectrum, List<Double> spectralCentroids, List<Integer> spectralFluxes, List<Double> spectralRolloffPoints) {
+    public SoundTypeParameters(String type, List<Integer> signalEnvelope, List<Integer> rootMeanSquareEnergy, List<Integer> zeroCrossingDensity, List<Integer> powerSpectrum, List<Double> spectralCentroids, List<Integer> spectralFluxes, List<Double> spectralRolloffPoints) {
         this.typeName = type;
         this.parametersListInt.add(createParameterInt(signalEnvelope, ParameterName.SignalEnvelope));
         this.parametersListInt.add(createParameterInt(rootMeanSquareEnergy, ParameterName.RootMeanSquareEnergy));
-        this.zeroCrossingDensityCount = 1;
-        this.zeroCrossingDensity = zeroCrossingDensity;
+        this.parametersListInt.add(createParameterInt(zeroCrossingDensity, ParameterName.ZeroCrossingDensity));
         this.parametersListInt.add(createParameterInt(powerSpectrum, ParameterName.PowerSpectrum));
         this.parametersListDouble.add(createParameterDouble(spectralCentroids, ParameterName.SpectralCentroids));
         this.parametersListInt.add(createParameterInt(spectralFluxes, ParameterName.SpectralFluxes));
